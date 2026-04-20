@@ -613,7 +613,7 @@
       gap: 10px;
       z-index: 10;
       pointer-events: none;
-      background: linear-gradient(to top, rgba(244,244,242,0.8) 0%, rgba(244,244,242,0) 100%);
+      background: linear-gradient(to top, rgba(244, 244, 242, 0.8) 0%, rgba(244, 244, 242, 0) 100%);
     }
 
     #ctrl-strip>* {
@@ -874,7 +874,7 @@
     const SLOTS = [
       // —— [1] 北極 (一番上) ——
       { type: "pole", name: "「息吹」", sub: "のおる(nolqe)-Information" },
-      { type: "note", img: "https://media.discordapp.net/attachments/1491139755167977575/1494508780023578745/image.png?ex=69e2dd43&is=69e18bc3&hm=194aba4994f8052ebbe4a24946ec87e88d7315d26f7881c4a0dd3172a6a93651&=&format=webp&quality=lossless&width=917&height=917", },
+      { type: "note", img: "./images/icon.png", },
       {
         type: "work",
         name: "Krush様",
@@ -897,12 +897,12 @@
         meta: "音声ライブラリ",
         url: "https://n00l3.fanbox.cc/posts/11664011",
         linkLabel: "FANBOXで見る →",
-        img: "https://cdn.discordapp.com/attachments/1491139755167977575/1494505428023775385/image.png?ex=69e2da24&is=69e188a4&hm=204e789af98e11d468cf6994ede97d5f124e3e436e66c7042a58765e244330b1&",
+        img: "./images/nope.png",
       },
       {
         type: "home",
         name: "のおる",
-        signImg: "https://cdn.discordapp.com/attachments/1409542781646536802/1494819776625774742/image.png?ex=69e3fee7&is=69e2ad67&hm=3bb9545af9eda537e4e66be3eb595ca5ea2caa56fbe1fe7008456939cadf00d4&",
+        signImg: "./images/sign.png",
         handle: "@t_t_r_n_",
         role: "Multi-Creator",
         lead: "映像,イラスト,歌などの活動",
@@ -955,7 +955,7 @@
         type: "filler",
         lines: ["循環、円環、そこにある波", "今日も作為を溢し続けるのは", "そこにあなたがいるから！"],
       },
-      { type: "note", title: "人工言語-Sepnahqol", img: "https://pbs.twimg.com/media/HGEVTLWbUAATiK1?format=png&name=large", meta: "下書き" },
+      { type: "note", title: "人工言語-Sepnahqol", img: "./images/sep.png", meta: "下書き" },
       {
         type: "note",
         title: "ポートフォリオ導線の再設計メモ",
@@ -1203,7 +1203,7 @@
     };
     // ══════════════════ PANEL FOCUS ══════════════════
     function slerpQ(a, b, t) {
-      let dot = a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + a[3]*b[3];
+      let dot = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
       if (dot < 0) { b = b.map(v => -v); dot = -dot; }
       if (dot > 0.9995) return qN(a.map((v, i) => v + t * (b[i] - v)));
       const theta = Math.acos(Math.min(1, dot));
@@ -1910,7 +1910,7 @@
     function resetIdle() { lastInteract = performance.now(); }
     function lfoTick() {
       lfoT += 0.016;
-      
+
       // イントロアニメーション: 球体が飛び出して少し縮む (easeOutBack・控えめに)
       introT = Math.min(1.0, introT + 0.014); // 約1.1秒で1に到達
       const t = introT - 1;
@@ -1924,7 +1924,7 @@
       const breathPhase = lfoT * (0.7 + Math.abs(rate) * 0.9);
       const breathAmp = 1.2 + Math.abs(amp) * 8;
       const breath = Math.sin(breathPhase) * breathAmp;
-      
+
       // ベースの半径(初期値520、UIパネルで変更可能)にイントロ倍率を掛け、呼吸を加算
       // マイナス値（裏返り演出）も許容するためそのまま計算
       P.radius = P.radiusBase * b + breath * Math.max(0, b);
@@ -2061,10 +2061,10 @@
       resetIdle();
       const step = 0.12;
       switch (e.key) {
-        case "ArrowLeft":  aR(-step, 0); tick(); e.preventDefault(); break;
-        case "ArrowRight": aR(step, 0);  tick(); e.preventDefault(); break;
-        case "ArrowUp":    aR(0, step);  tick(); e.preventDefault(); break;
-        case "ArrowDown":  aR(0, -step); tick(); e.preventDefault(); break;
+        case "ArrowLeft": aR(-step, 0); tick(); e.preventDefault(); break;
+        case "ArrowRight": aR(step, 0); tick(); e.preventDefault(); break;
+        case "ArrowUp": aR(0, step); tick(); e.preventDefault(); break;
+        case "ArrowDown": aR(0, -step); tick(); e.preventDefault(); break;
       }
     });
   </script>
