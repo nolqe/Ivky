@@ -12,16 +12,22 @@
   <meta property="og:url" content="https://nolqe.github.io/Ivky/" />
   <meta property="og:title" content="のおる — portfolio & info" />
   <meta property="og:description" content="映像制作を軸に、幅広く活動中のクリエイター「のおる」のウェブサイトです。" />
-  <meta property="og:image" content="https://nolqe.github.io/Ivky/images/ivki.png" />
+  <meta property="og:image" content="https://nolqe.github.io/Ivky/images/ivky.png" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="https://nolqe.github.io/Ivky/" />
   <meta name="twitter:title" content="のおる — portfolio & info" />
   <meta name="twitter:description" content="映像制作を軸に、幅広く活動中のクリエイター「のおる」のウェブサイトです。" />
-  <meta name="twitter:image" content="https://nolqe.github.io/Ivky/images/ivki.png" />
+  <meta name="twitter:image" content="https://nolqe.github.io/Ivky/images/ivky.png" />
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@300;400&family=Playfair+Display:wght@400;500&display=swap");
+
+    @font-face {
+      font-family: 'Aozora Mincho Thin';
+      src: url('https://cdn.leafscape.be/aozoramincho/AozoraMinchoThin_web.woff2') format('woff2');
+      font-display: swap;
+    }
 
     * {
       margin: 0;
@@ -130,12 +136,15 @@
     }
 
     h1 {
-      font-family: "Playfair Display", var(--serif);
-      font-size: clamp(28px, 6vw, 46px);
-      font-weight: 400;
-      letter-spacing: -0.02em;
+      font-family: 'Aozora Mincho Thin', "Playfair Display", var(--serif);
+      font-size: clamp(32px, 7vw, 50px);
+      font-weight: 100;
+      letter-spacing: 0.043em;
       line-height: 1;
       white-space: nowrap;
+      display: inline-block;
+      transform: scaleY(0.86);
+      transform-origin: center bottom;
     }
 
     .home-header {
@@ -401,6 +410,8 @@
     .note-img {
       margin-bottom: 8px;
       margin-top: 4px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .work-img {
@@ -413,6 +424,7 @@
 
     .note-item {
       padding: 11px 0;
+      text-align: center;
       transition: transform 0.2s;
     }
 
@@ -969,7 +981,7 @@
         title: "nolqe-情報整理ツール",
         meta: "Chrome拡張機能",
         url: "https://note.com/nolqe/n/n6edf38ec361f",
-        linkLabel: "記事を読む →",
+        linkLabel: "noteで見る →",
         img: "./images/nolqe.png",
       },
       {
@@ -1009,7 +1021,6 @@
       {
         type: "note",
         title: "旧：依頼詳細記事",
-        meta: "記事",
         url: "https://note.com/nolqe/n/n083ab727b8a3?sub_rt=share_sb",
         linkLabel: "noteで見る →",
       },
