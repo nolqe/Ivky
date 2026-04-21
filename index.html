@@ -943,18 +943,19 @@
       },
       {
         type: "note",
-        title: "Chrome拡張機能-nolqe",
-        meta: "note",
-        url: "https://note.com/nolqe/n/n6edf38ec361f",
-        linkLabel: "記事を読む →",
-      },
-      {
-        type: "note",
-        title: "UTAU-死乃のぺ れんたん風単独音",
+        title: "UTAU-死乃のぺ　れんたん風単独音",
         meta: "音声ライブラリ",
         url: "https://n00l3.fanbox.cc/posts/11664011",
         linkLabel: "配布ページ →",
         img: "./images/nope.png",
+      },
+      {
+        type: "note",
+        title: "nolqe-情報整理ツール",
+        meta: "Chrome拡張機能",
+        url: "https://note.com/nolqe/n/n6edf38ec361f",
+        linkLabel: "記事を読む →",
+        img: "./images/nolqe.png",
       },
       {
         type: "home",
@@ -991,6 +992,13 @@
         links: [{ label: "ノンストップメドれ！【MV】-また切ない世界を生きる", url: "https://youtu.be/aPpe4zBk3OQ?si=0o_fPp8y8t2Oeqjx&t=231" }],
       },
       {
+        type: "note",
+        title: "旧：依頼詳細記事",
+        meta: "記事",
+        url: "https://note.com/nolqe/n/n083ab727b8a3?sub_rt=share_sb",
+        linkLabel: "noteで見る →",
+      },
+      {
         type: "price",
         title: "Price",
         items: [
@@ -1011,27 +1019,23 @@
         ]
       },
       {
-        type: "note",
-        title: "旧-依頼詳細記事",
-        meta: "記事",
-        url: "https://note.com/nolqe/n/n083ab727b8a3?sub_rt=share_sb",
-        linkLabel: "noteで見る →",
-      },
-      {
         type: "filler",
         lines: ["循環、円環、そこにある波", "今日も作為を溢し続けるのは", "そこにあなたがいるから！"],
       },
-      { type: "note", title: "人工言語-Sepnahqol", img: "./images/sep.png", meta: "下書き" },
       {
-        type: "note",
-        title: "ポートフォリオサイト制作",
-        meta: "検証中",
+        type: "work",
+        name: "歌宵花瑠様",
+        status: "Video Works",
+        tags: ["MV", "Vocaloid", "Lyric Motion"],
+        ytId: "MqjxINp7VjQ",
+        links: [{ label: "Sunny Notes (feat.初音ミク) / 歌宵花瑠", url: "https://youtu.be/MqjxINp7VjQ?si=ecOMgr6F5R5wsuFw" }],
       },
+      { type: "note", title: "人工言語-Sepnahqol", img: "./images/sep.png", meta: "" },
       {
         type: "contact",
         title: "Contact",
         data: {
-          lead: "ご依頼・ご相談はXのDM等へ！\n規模や予算は問いません。\n下記を参考に、お気軽にどうぞ。\n納品後、銀行振込またはPayPayにてお支払い。",
+          lead: "ご依頼・ご相談はXのDM等へ！\n規模や予算は問いません。\n納品後、銀行振込またはPayPayにてお支払い。",
           dmUrl: "https://x.com/t_t_r_n_",
           dmLabel: "X でDMを送る →",
           template: [
@@ -1665,8 +1669,8 @@
         fmt: (v) => "R:" + (v >= 0 ? "+" : "") + Math.round(v),
       },
       {
-        min: -300,
-        max: 8000,
+        min: -1000,
+        max: 5000,
         get: () => P.perspective,
         set: (v) => {
           P.perspective = v;
