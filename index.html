@@ -114,12 +114,17 @@
       cursor: default;
     }
 
+    .panel * {
+      transform-style: preserve-3d;
+    }
+
     h1 {
       font-size: clamp(28px, 6vw, 46px);
       font-weight: 300;
       letter-spacing: -0.025em;
       line-height: 1;
       white-space: nowrap;
+      transform: translateZ(26px);
     }
 
     .home-header {
@@ -131,7 +136,7 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%) translateZ(90px);
       height: 250%;
       /* 名前の2.5倍の高さで、はみ出すように被さる */
       width: auto;
@@ -285,6 +290,8 @@
       position: relative;
       overflow: hidden;
       cursor: pointer;
+      transform: translateZ(60px);
+      transform-style: preserve-3d;
     }
 
     .yt.is-disabled {
@@ -380,6 +387,7 @@
       height: auto;
       border-radius: 5px;
       display: block;
+      transform: translateZ(60px);
     }
 
     .note-img {
@@ -441,9 +449,54 @@
       width: clamp(250px, 60vw, 290px);
     }
 
-    .pr {
-      padding: 10px 0;
+    .pr-block {
+      padding: 12px 0;
       border-bottom: 1px solid var(--border2);
+    }
+
+    .pr-block:first-child {
+      border-top: 1px solid var(--border2);
+    }
+
+    .pr-group-name {
+      font-size: 15px;
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+
+    .pr-sub-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .pr-sub-row {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      padding-left: 6px;
+      transition: transform 0.2s;
+    }
+
+    .pr-sub-row:hover {
+      transform: translateX(2px);
+    }
+
+    .pr-sub-amt {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text);
+      width: 66px;
+      flex-shrink: 0;
+    }
+
+    .pr-sub-desc {
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--text2);
+    }
+
+    .pr-single-row {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
@@ -451,27 +504,16 @@
       transition: transform 0.2s;
     }
 
-    .pr:first-child {
-      border-top: 1px solid var(--border2);
-    }
-
-    .pr:hover {
+    .pr-single-row:hover {
       transform: translateX(2px);
     }
 
-    .pname {
+    .pr-single-name {
       font-size: 15px;
       font-weight: 400;
     }
 
-    .pdesc {
-      font-family: var(--mono);
-      font-size: 8.5px;
-      color: var(--text2);
-      margin-top: 3px;
-    }
-
-    .pamt {
+    .pr-single-amt {
       font-family: var(--mono);
       font-size: 10px;
       color: var(--text);
@@ -519,6 +561,8 @@
       padding: 16px;
       background: var(--bg2);
       border-radius: 5px;
+      transform: translateZ(40px);
+      transform-style: preserve-3d;
     }
 
     .tpl-label {
@@ -531,15 +575,38 @@
     }
 
     .tpl-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 16px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 480px) {
+      .tpl-body {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+    }
+
+    .tpl-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .tpl-lbl {
       font-family: var(--mono);
-      font-size: 9.5px;
+      font-size: 8px;
+      color: var(--text);
+    }
+
+    .tpl-val {
+      font-size: 10px;
       color: var(--text2);
-      line-height: 1.95;
-      white-space: pre;
     }
 
     .tpl-ph {
-      color: var(--text4);
+      display: none;
     }
 
     .cbtn {
@@ -878,8 +945,7 @@
       {
         type: "work",
         name: "Krush様",
-        status: "Video works",
-        desc: "MVにて、映像を担当させていただきました",
+        status: "Video Works",
         tags: ["MV", "Blender", "Lyric Motion", "歌ってみた"],
         ytId: "RTY3UJ6UmOw",
         links: [{ label: "キャリバー / ばぁう(cover.)", url: "https://youtu.be/RTY3UJ6UmOw?si=VWETlyy4AvGkkkpA" }],
@@ -912,7 +978,6 @@
         type: "work",
         name: "いちプロ様",
         status: "Video Works",
-        desc: "MVにて、映像を担当させていただきました",
         tags: ["MV", "Lyric Motion", "歌ってみた"],
         ytId: "raK3qEc7G2Y",
         links: [{ label: "【歌ってみた】君の彼氏になりたい。 / SnowMan \n【＃いちプロ】", url: "https://youtu.be/raK3qEc7G2Y?si=LwQK9ySFzm_q9dGB" }],
@@ -920,8 +985,7 @@
       {
         type: "work",
         name: "Krush様",
-        status: "Video works",
-        desc: "MVにて、映像を担当させていただきました",
+        status: "Video Works",
         tags: ["MV", "Blender", "Lyric Motion"],
         ytId: "IEjHbilyqbM",
         links: [{ label: "I&U / Krush", url: "https://www.youtube.com/watch?v=IEjHbilyqbM" }],
@@ -939,9 +1003,20 @@
         type: "price",
         title: "Price",
         items: [
-          { name: "映像制作", desc: "撮影・編集・納品まで対応。", amount: "要相談" },
-          { name: "イラスト制作", desc: "MV用イラスト・サムネイル・SNSアイコンなど。", amount: "要相談" },
-          { name: "その他", desc: "上記以外もお気軽にご相談ください。", amount: "要相談", muted: true },
+          {
+            isGroup: true,
+            name: "映像制作",
+            subs: [
+              { amount: "15,000円〜", desc: "静的なMV" },
+              { amount: "25,000円〜", desc: "モーション・2D演出を含むMV" },
+              { amount: "40,000円〜", desc: "3DCGを含むMV" },
+            ]
+          },
+          {
+            isGroup: false,
+            name: "イラスト / ボーカルなど",
+            amount: "要相談"
+          }
         ]
       },
       {
@@ -958,24 +1033,24 @@
       { type: "note", title: "人工言語-Sepnahqol", img: "./images/sep.png", meta: "下書き" },
       {
         type: "note",
-        title: "ポートフォリオ導線の再設計メモ",
+        title: "ポートフォリオサイト制作",
         meta: "検証中",
       },
       {
         type: "contact",
         title: "Contact",
         data: {
-          lead: "依頼・相談はXのDMへ。まず雰囲気や方向性を擦り合わせてから、詳細をお聞きします。",
-          dmUrl: "https://x.com/messages/compose?screen_name=t_t_r_n_",
+          lead: "ご依頼・ご相談はXのDM等へ！\n規模や予算は問いません。下記を参考に、お気軽にどうぞ。\nお支払いは納品後、銀行振込またはPayPayにて。",
+          dmUrl: "https://x.com/t_t_r_n_",
           dmLabel: "X でDMを送る →",
-          profileUrl: "https://x.com/t_t_r_n_",
-          note: "DMが開かない場合は",
           template: [
             { label: "依頼内容", ph: "映像制作・イラストなど" },
-            { label: "予算目安", ph: "未定でもOK" },
-            { label: "納期目安", ph: "〇月ごろまでに" },
+            { label: "予算目安", ph: "未定でも可" },
+            { label: "納期目安", ph: "〇月〇日ごろまで" },
             { label: "素材・仕様", ph: "音源あり・イラスト手配中など" },
-            { label: "その他", ph: "自由記述" },
+            { label: "クレジット表記", ph: "希望の名義、または不要" },
+            { label: "支払い方法", ph: "銀行振込 / PayPay" },
+            { label: "自由記述", ph: "イメージ・参考URLなど" },
           ]
         }
       },
@@ -1097,14 +1172,25 @@
         }
         case "price": {
           const items = s.items || [];
-          return `<div><div class="sec-head">${esc(s.title || "Price")}</div><div class="price-stack">${items.map((p) => `<div class="pr"><div><div class="pname">${esc(p.name)}</div><div class="pdesc">${esc(p.desc)}</div></div><div class="pamt"${p.muted ? ' style="color:var(--text4)"' : ""}>${esc(p.amount)}</div></div>`).join("")}</div></div>`;
+          return `<div><div class="sec-head">${esc(s.title || "Price")}</div><div class="price-stack">` +
+            items.map(p => {
+              if (p.isGroup) {
+                const subsHtml = (p.subs || []).map(sub =>
+                  `<div class="pr-sub-row"><div class="pr-sub-amt">${esc(sub.amount)}</div><div class="pr-sub-desc">${esc(sub.desc)}</div></div>`
+                ).join("");
+                return `<div class="pr-block"><div class="pr-group-name">${esc(p.name)}</div><div class="pr-sub-list">${subsHtml}</div></div>`;
+              } else {
+                return `<div class="pr-block"><div class="pr-single-row"><div class="pr-single-name">${esc(p.name)}</div><div class="pr-single-amt">${esc(p.amount)}</div></div></div>`;
+              }
+            }).join("") +
+            `</div></div>`;
         }
         case "contact": {
           const c = s.data || {};
           const tpl = c.template || [];
-          const tb = tpl.map((t) => `${esc(t.label)}：<span class="tpl-ph">${esc(t.ph)}</span>`).join("\n");
+          const tb = tpl.map((t) => `<div class="tpl-row"><span class="tpl-lbl">${esc(t.label)}</span><span class="tpl-val">${esc(t.ph)}</span></div>`).join("");
           const tp = tpl.map((t) => t.label + "：").join("\n");
-          return `<div><div class="sec-head">${esc(s.title || "Contact")}</div><div class="contact-w"><p class="clead">${esc(c.lead || "")}</p><a href="${esc(c.dmUrl || "#")}" class="dmlink" target="_blank">${esc(c.dmLabel || "DMを送る →")}</a><div class="contact-meta">${esc(c.note || "DMが開かない場合は")} <a href="${esc(c.profileUrl || "#")}" class="dmlink" target="_blank">プロフィール</a> から。</div><div class="tpl"><div class="tpl-label">依頼テンプレート（任意）</div><div class="tpl-body">${tb}</div><button class="cbtn" data-tpl="${esc(tp)}">コピーする ↗</button></div></div></div>`;
+          return `<div><div class="sec-head">${esc(s.title || "Contact")}</div><div class="contact-w"><p class="clead">${esc(c.lead || "")}</p><a href="${esc(c.dmUrl || "#")}" class="dmlink" target="_blank">${esc(c.dmLabel || "DMを送る →")}</a><div class="tpl"><div class="tpl-label">依頼テンプレート（任意）</div><div class="tpl-body">${tb}</div><button class="cbtn" data-tpl="${esc(tp)}">コピーする ↗</button></div></div></div>`;
         }
         case "filler":
           return `<div class="filler-card"><div class="filler-text">${(s.lines || []).map((l) => esc(l)).join("<br>")}</div></div>`;
@@ -1416,12 +1502,12 @@
           rX = (-Math.asin(Math.max(-1, Math.min(1, wy))) * 180) / Math.PI;
         const vis = wz > -0.78,
           dm = (wz + 1) / 2,
-          op = vis ? 0.16 + dm * 0.84 : 0,
           sc = 0.8 + dm * 0.2;
         p.el.style.transform = `translate(-50%,-50%) translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,${z.toFixed(1)}px) rotateY(${rY.toFixed(2)}deg) rotateX(${rX.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
-        p.el.style.opacity = op.toFixed(3);
+        p.el.style.opacity = "";
+        p.el.style.filter = "";
+        p.el.style.visibility = vis ? "visible" : "hidden";
         p.el.style.pointerEvents = wz > 0.12 ? "auto" : "none";
-        p.el.style.filter = `blur(${((1 - dm) * 1.4).toFixed(2)}px)`;
         p.el.style.zIndex = String(Math.round(dm * 1000));
       });
       hP = Math.atan2(
