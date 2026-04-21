@@ -114,6 +114,10 @@
       cursor: default;
     }
 
+    .panel * {
+      transform-style: preserve-3d;
+    }
+
     h1 {
       font-family: "Playfair Display", var(--serif);
       font-size: clamp(28px, 6vw, 46px);
@@ -121,6 +125,7 @@
       letter-spacing: -0.02em;
       line-height: 1;
       white-space: nowrap;
+      transform: translateZ(26px);
     }
 
     .home-header {
@@ -132,7 +137,7 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%) translateZ(90px);
       height: 250%;
       /* 名前の2.5倍の高さで、はみ出すように被さる */
       width: auto;
@@ -286,6 +291,8 @@
       position: relative;
       overflow: hidden;
       cursor: pointer;
+      transform: translateZ(60px);
+      transform-style: preserve-3d;
     }
 
     .yt.is-disabled {
@@ -381,6 +388,7 @@
       height: auto;
       border-radius: 5px;
       display: block;
+      transform: translateZ(60px);
     }
 
     .note-img {
@@ -554,6 +562,8 @@
       padding: 16px;
       background: var(--bg2);
       border-radius: 5px;
+      transform: translateZ(40px);
+      transform-style: preserve-3d;
     }
 
     .tpl-label {
@@ -1031,7 +1041,7 @@
         type: "contact",
         title: "Contact",
         data: {
-          lead: "ご依頼・ご相談はXのDM等へ！\n規模や予算は問いません。下記を参考に、お気軽にどうぞ。\nお支払いは納品後、銀行振込またはPayPayにて。",
+          lead: "ご依頼・ご相談はXのDM等へ！\n規模や予算は問いません。\n下記を参考に、お気軽にどうぞ。\nお支払いは納品後、\n銀行振込またはPayPayにて。",
           dmUrl: "https://x.com/t_t_r_n_",
           dmLabel: "X でDMを送る →",
           template: [
@@ -1493,11 +1503,11 @@
           rX = (-Math.asin(Math.max(-1, Math.min(1, wy))) * 180) / Math.PI;
         const vis = wz > -0.78,
           dm = (wz + 1) / 2,
-          op = vis ? 0.16 + dm * 0.84 : 0,
           sc = 0.8 + dm * 0.2;
         p.el.style.transform = `translate(-50%,-50%) translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,${z.toFixed(1)}px) rotateY(${rY.toFixed(2)}deg) rotateX(${rX.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
-        p.el.style.opacity = op.toFixed(3);
-        p.el.style.filter = `blur(${((1 - dm) * 1.4).toFixed(2)}px)`;
+        p.el.style.opacity = "";
+        p.el.style.filter = "";
+        p.el.style.visibility = vis ? "visible" : "hidden";
         p.el.style.pointerEvents = wz > 0.12 ? "auto" : "none";
         p.el.style.zIndex = String(Math.round(dm * 1000));
       });
@@ -2148,3 +2158,4 @@
 </body>
 
 </html>
+
