@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>のおる — archive</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&display=swap");
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #f4f4f2;
+      --border2: #e2e2dd;
+      --text: #181816;
+      --text2: #6a6a65;
+      --mono: "DM Mono", monospace;
+    }
+
+    html,
+    body {
+      height: 100%;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 30px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--text2);
+      border-bottom: 1px solid var(--border2);
+    }
+
+    .bar a {
+      color: var(--text);
+      text-decoration: none;
+      border-bottom: 1px solid var(--text);
+      padding-bottom: 1px;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+
+    .bar a:hover {
+      opacity: 0.45;
+    }
+
+    .list {
+      list-style: none;
+      padding: 28px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+    }
+
+    .list a {
+      color: var(--text);
+      text-decoration: none;
+      border-bottom: 1px solid var(--text);
+      padding-bottom: 1px;
+      transition: opacity 0.2s;
+    }
+
+    .list a:hover {
+      opacity: 0.45;
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: calc(100dvh - 30px);
+      border: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bar"><span id="name"></span><a href="../">最新の版へ戻る →</a></div>
+  <iframe id="frame" title="過去の版"></iframe>
+  <script src="../versions.js"></script>
+  <script>
+    // ?id=<id> の版を、手を入れずにそのまま下に表示する。id が無ければ旧版の一覧を出す（メニューは旧版が 2 つ以上になるとここへ来る）
+    const id = new URLSearchParams(location.search).get("id");
+    const olds = (typeof VERSIONS !== "undefined" ? VERSIONS : []).filter((x) => !x.current);
+    const v = olds.find((x) => x.id === id);
+    const name = document.getElementById("name"),
+      frame = document.getElementById("frame");
+    if (v) {
+      name.textContent = `${v.label} の版を表示中`;
+      document.title = `のおる — ${v.label}`;
+      frame.src = `./${encodeURIComponent(v.id)}/`;
+    } else {
+      frame.remove();
+      if (id == null && olds.length) {
+        name.textContent = "旧版";
+        const list = document.createElement("ul");
+        list.className = "list";
+        olds.forEach((o) => {
+          const a = list.appendChild(document.createElement("li")).appendChild(document.createElement("a"));
+          a.href = `./?id=${encodeURIComponent(o.id)}`;
+          a.textContent = `${o.label} の版 →`;
+        });
+        document.body.appendChild(list);
+      } else name.textContent = "この版は見つかりません";
+    }
+  </script>
+</body>
+
+</html>

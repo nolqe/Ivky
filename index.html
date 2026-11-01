@@ -23,12 +23,6 @@
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@300;400&family=Playfair+Display:wght@400;500&display=swap");
 
-    @font-face {
-      font-family: 'Aozora Mincho Thin';
-      src: url('https://cdn.leafscape.be/aozoramincho/AozoraMinchoThin_web.woff2') format('woff2');
-      font-display: swap;
-    }
-
     * {
       margin: 0;
       padding: 0;
@@ -55,6 +49,10 @@
       padding: 0;
       overflow: hidden;
       height: 100%;
+      /* 文字は選べない（球を回したりダブルクリックしたりしたときに、選択の色が付かないように） */
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
     }
 
     #app {
@@ -136,6 +134,7 @@
     }
 
     h1 {
+      /* あおぞら明朝 thin は、端末に入っているときだけ効く（配信はしていない。前の配信先は 404 だった）。無ければ Playfair Display と明朝 */
       font-family: 'Aozora Mincho Thin', "Playfair Display", var(--serif);
       font-size: clamp(32px, 7vw, 50px);
       font-weight: 100;
@@ -212,6 +211,45 @@
 
     .work-card {
       width: clamp(210px, 50vw, 250px);
+    }
+
+    /* 実績一覧への入口: 最新のサムネイルを束ねて重ね、触れると扇状に開く */
+    .we-stack {
+      position: relative;
+      display: block;
+      aspect-ratio: 16/9;
+      margin: 6px 0 4px;
+    }
+
+    .we-stack span {
+      position: absolute;
+      inset: 0;
+      border-radius: 6px;
+      background-color: #eae9e5;
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 1px 4px rgba(24, 24, 22, 0.06);
+      transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .we-stack span:nth-last-child(3) {
+      transform: rotate(-6deg) translate(-10px, 5px) scale(0.95);
+    }
+
+    .we-stack span:nth-last-child(2) {
+      transform: rotate(4deg) translate(9px, 1px) scale(0.97);
+    }
+
+    .we-stack:hover span:nth-last-child(3) {
+      transform: rotate(-10deg) translate(-26px, 8px) scale(0.92);
+    }
+
+    .we-stack:hover span:nth-last-child(2) {
+      transform: rotate(7deg) translate(22px, 3px) scale(0.95);
+    }
+
+    .we-stack:hover span:last-child {
+      transform: translateY(-3px);
     }
 
     .wnum {
@@ -945,6 +983,8 @@
       </div>
     </div>
   </div>
+  <script src="./works.js"></script>
+  <script src="./request.js"></script>
   <script>
     // ====== 配置の順番について ======
     // 要素は配列の「上から順番」に、以下の指定エリアへと配置されていきます。
@@ -1019,31 +1059,13 @@
         links: [{ label: "ノンストップメドれ！【MV】-また切ない世界を生きる", url: "https://youtu.be/aPpe4zBk3OQ?si=0o_fPp8y8t2Oeqjx&t=231" }],
       },
       {
-        type: "note",
-        title: "旧：依頼詳細記事",
-        url: "https://note.com/nolqe/n/n083ab727b8a3?sub_rt=share_sb",
-        linkLabel: "noteで見る →",
+        type: "works",
+        title: "実績一覧",
+        url: "./works.html",
+        linkLabel: "一覧を見る →",
       },
-      {
-        type: "price",
-        title: "料金目安",
-        items: [
-          {
-            isGroup: true,
-            name: "映像制作",
-            subs: [
-              { amount: "15,000円〜", desc: "静的なMV" },
-              { amount: "25,000円〜", desc: "モーション・2D演出を含むMV" },
-              { amount: "40,000円〜", desc: "3DCGを含むMV" },
-            ]
-          },
-          {
-            isGroup: false,
-            name: "イラスト / ボーカルなど",
-            amount: "要相談"
-          }
-        ]
-      },
+      // 料金目安・Contact・南極の中身は request.js（依頼・相談ページと共通）
+      { type: "price", title: "料金目安", items: PRICE },
       {
         type: "filler",
         lines: ["循環、円環、そこにある波", "今日も作為を溢し続けるのは", "そこにあなたがいるから！"],
@@ -1057,25 +1079,8 @@
         links: [{ label: "Sunny Notes (feat.初音ミク) / 歌宵花瑠", url: "https://youtu.be/MqjxINp7VjQ?si=ecOMgr6F5R5wsuFw" }],
       },
       { type: "note", title: "人工言語-Sepnahqol", img: "./images/sep.png", meta: "" },
-      {
-        type: "contact",
-        title: "Contact",
-        data: {
-          lead: "ご依頼・ご相談はXのDM等へ！\n規模や予算は問いません。\n納品後、銀行振込またはPayPayにてお支払い。",
-          dmUrl: "https://x.com/t_t_r_n_",
-          dmLabel: "X でDMを送る →",
-          template: [
-            { label: "依頼内容", ph: "映像制作・イラストなど" },
-            { label: "予算目安", ph: "未定でも可" },
-            { label: "納期目安", ph: "〇月〇日ごろまで" },
-            { label: "素材・仕様", ph: "音源あり・イラスト手配中など" },
-            { label: "クレジット", ph: "希望の名義、または不要" },
-            { label: "支払い方法", ph: "銀行振込 / PayPay" },
-            { label: "自由記述", ph: "イメージ・参考URLなど" },
-          ]
-        }
-      },
-      { type: "pole", name: "Discord : n00l3", sub: "yamasakiryo0328@gmail.com" },
+      { type: "contact", title: "Contact", data: CONTACT },
+      { type: "pole", name: `Discord : ${CONTACT.discord}`, sub: CONTACT.mail },
     ];
     const RING_DEF = [
       { count: 1, lat: 1.22 },
@@ -1183,6 +1188,17 @@
           }
 
           return `<div class="work-card">${wNum}<div class="wname">${esc(s.name || "")}</div>${st}<div class="wdesc">${esc(s.desc || "")}</div>${tagsHtml}${mediaHtml}${lk}</div>`;
+        }
+        case "works": {
+          // 件数・年・サムネイルは works.js（実績一覧のデータ）から
+          const list = typeof sortedWorks === "function" ? sortedWorks() : [];
+          const years = list.map((w) => (w.date || "").slice(0, 4)).filter(Boolean);
+          const span = years.length ? (years[0] === years[years.length - 1] ? years[0] : `${years[years.length - 1]} — ${years[0]}`) : "";
+          const meta = list.length ? `<div class="wmeta">${String(list.length).padStart(2, '0')} works${span ? " · " + esc(span) : ""}</div>` : "";
+          const thumbs = list.filter((w) => w.ytId).slice(0, 3).reverse()
+            .map((w) => `<span style="background-image: url('https://img.youtube.com/vi/${esc(w.ytId)}/maxresdefault.jpg')"></span>`).join("");
+          const stackHtml = thumbs ? `<a href="${esc(s.url)}" class="we-stack">${thumbs}</a>` : "";
+          return `<div class="work-card"><div class="wnum">WORKS</div><div class="wname">${esc(s.title || "")}</div>${meta}${stackHtml}<div class="wlinks"><a href="${esc(s.url)}" class="wlink">${esc(s.linkLabel || "一覧を見る →")}</a></div></div>`;
         }
         case "note": {
           const linkHtml = s.url
@@ -2175,6 +2191,8 @@
       }
     });
   </script>
+  <script src="./versions.js"></script>
+  <script src="./menu.js"></script>
 </body>
 
 </html>
