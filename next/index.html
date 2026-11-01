@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>のおる — portfolio & info</title>
+  <meta name="description" content="映像制作を軸に、幅広く活動中のクリエイター「のおる」のウェブサイトです。" />
+
+  <!-- OGP / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://nolqe.github.io/Ivky/" />
+  <meta property="og:title" content="のおる — portfolio & info" />
+  <meta property="og:description" content="映像制作を軸に、幅広く活動中のクリエイター「のおる」のウェブサイトです。" />
+  <meta property="og:image" content="https://nolqe.github.io/Ivky/images/ivky.png" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://nolqe.github.io/Ivky/" />
+  <meta name="twitter:title" content="のおる — portfolio & info" />
+  <meta name="twitter:description" content="映像制作を軸に、幅広く活動中のクリエイター「のおる」のウェブサイトです。" />
+  <meta name="twitter:image" content="https://nolqe.github.io/Ivky/images/ivky.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@300;400&family=Playfair+Display:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div id="app">
+    <canvas id="bg"></canvas>
+    <canvas id="connections"></canvas>
+    <div id="sphere-vp">
+      <div id="globe"></div>
+    </div>
+    <div id="ctrl-strip">
+      <div class="xy-pad" id="pad-L">
+        <canvas id="padL-c"></canvas>
+        <div class="xy-labels">
+          <span class="xy-l xy-lx">Radius</span><span class="xy-l xy-ly">Persp</span>
+        </div>
+      </div>
+      <div class="ctrl-div"></div>
+      <div class="sub-dial-ch">
+        <div class="sub-dial" id="sd-x">
+          <svg viewBox="0 0 48 48" id="sd-x-svg">
+            <circle cx="24" cy="24" r="21" fill="#f0f0ee" stroke="#d8d8d4" stroke-width="0.4" />
+            <g id="sd-x-knurl"></g>
+            <circle cx="24" cy="24" r="13" fill="#f4f4f2" stroke="#dcdcd8" stroke-width="0.3" />
+            <circle cx="24" cy="24" r="1.2" fill="var(--text4)" />
+            <g id="sd-x-needle">
+              <line x1="24" y1="24" x2="24" y2="6" stroke="var(--text3)" stroke-width="0.8" stroke-linecap="round" />
+              <circle cx="24" cy="7" r="1.2" fill="var(--text3)" />
+            </g>
+          </svg>
+          <div class="sub-dial-val" id="sd-x-val">0°</div>
+        </div>
+        <div class="sub-dial-label">Lon</div>
+      </div>
+      <div id="trackball">
+        <canvas id="tb-canvas" width="180" height="180"></canvas>
+      </div>
+      <div class="sub-dial-ch">
+        <div class="sub-dial" id="sd-y">
+          <svg viewBox="0 0 48 48" id="sd-y-svg">
+            <circle cx="24" cy="24" r="21" fill="#f0f0ee" stroke="#d8d8d4" stroke-width="0.4" />
+            <g id="sd-y-knurl"></g>
+            <circle cx="24" cy="24" r="13" fill="#f4f4f2" stroke="#dcdcd8" stroke-width="0.3" />
+            <circle cx="24" cy="24" r="1.2" fill="var(--text4)" />
+            <g id="sd-y-needle">
+              <line x1="24" y1="24" x2="24" y2="6" stroke="var(--text3)" stroke-width="0.8" stroke-linecap="round" />
+              <circle cx="24" cy="7" r="1.2" fill="var(--text3)" />
+            </g>
+          </svg>
+          <div class="sub-dial-val" id="sd-y-val">0°</div>
+        </div>
+        <div class="sub-dial-label">Lat</div>
+      </div>
+      <div class="ctrl-div"></div>
+      <div class="xy-pad" id="pad-R">
+        <canvas id="padR-c"></canvas>
+        <div class="xy-labels">
+          <span class="xy-l xy-lx">Rate</span><span class="xy-l xy-ly">Amp</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="./js/data.js"></script>
+  <script src="./js/world.js"></script>
+  <script src="./js/menu.js"></script>
+  <script src="./js/archive.js"></script>
+</body>
+
+</html>
