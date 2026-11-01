@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>のおる — works</title>
+  <meta name="description" content="映像制作を軸に、幅広く活動中のクリエイター「のおる」の実績一覧・自主制作と、依頼・相談の案内です。" />
+  <!-- works は息吹の球の上に入った。前からのリンクのために、球の実績一覧・自主制作と、依頼・相談の案内の所へ送る -->
+  <meta http-equiv="refresh" content="0; url=./#works" />
+
+  <!-- OGP / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://nolqe.github.io/Ivky/works.html" />
+  <meta property="og:title" content="のおる — works" />
+  <meta property="og:description" content="映像制作を軸に、幅広く活動中のクリエイター「のおる」の実績一覧・自主制作と、依頼・相談の案内です。" />
+  <meta property="og:image" content="https://nolqe.github.io/Ivky/images/ivky.png" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://nolqe.github.io/Ivky/works.html" />
+  <meta name="twitter:title" content="のおる — works" />
+  <meta name="twitter:description" content="映像制作を軸に、幅広く活動中のクリエイター「のおる」の実績一覧・自主制作と、依頼・相談の案内です。" />
+  <meta name="twitter:image" content="https://nolqe.github.io/Ivky/images/ivky.png" />
+  <script>
+    // works.html#personal・#request で来たときは、その所へ
+    const h = location.hash.slice(1);
+    location.replace("./#" + (["works", "personal", "request"].includes(h) ? h : "works"));
+  </script>
+</head>
+
+<body>
+  <a href="./#works">移動しない場合はこちら</a>
+</body>
+
+</html>
