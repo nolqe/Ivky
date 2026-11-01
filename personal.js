@@ -42,13 +42,13 @@ const PERSONAL = [
   {
     name: "UTAU-死乃のぺ　れんたん風単独音",
     status: "音声ライブラリ",
-    img: "./images/nope.png",
+    img: "./images/nope.webp",
     links: [{ label: "配布ページ", url: "https://n00l3.fanbox.cc/posts/11664011" }],
   },
   {
     name: "nolqe-情報整理ツール",
     status: "Chrome拡張機能",
-    img: "./images/nolqe.png",
+    img: "./images/nolqe.webp",
     links: [{ label: "noteで見る", url: "https://note.com/nolqe/n/n6edf38ec361f" }],
   },
   {
