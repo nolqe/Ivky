@@ -1,10 +1,83 @@
 // ====== 実績一覧のデータ ======
-// works.html（実績一覧）と index.html（入口の枠）の両方がここを読みます。
+// works.html の実績一覧の部と index.html（入口の枠）の両方がここを読みます。自主制作は personal.js。
 // date は公開日（YYYY-MM-DD）。一覧は新しい順に自動で並び、表示は年だけです。
 // 番号は古い方から 01, 02… と自動で振られます。追加は {} を1つ足すだけ（順番は気にしなくてよい）。
-// 項目は index.html の work スロットと同じ（name / status / desc / tags / ytId / img / links）。
+// 項目は index.html の work スロットと同じ（name / status / desc / tags / ytId / img / links）。並べ方と描き方は list.js。
+// タグの Log-!N は、のおるがいるチームの名前（チームでの仕事に付ける）。
 
 const WORKS = [
+  {
+    name: "bit-chan 様 × 葡萄うると 様 × むゆう 様",
+    status: "Video Works",
+    date: "2026-10-31",
+    tags: ["MV", "歌ってみた"],
+    ytId: "1Em4VQsKUMY",
+    links: [{ label: ". 仮装狂騒曲 - bit-chan × 葡萄うると × むゆう cover .", url: "https://youtu.be/1Em4VQsKUMY?si=wt2VGVWd3JsHqxT4" }],
+  },
+  {
+    name: "Krush 様",
+    status: "Video Works",
+    date: "2026-09-30",
+    tags: ["MV"],
+    ytId: "6YKut5aPnuk",
+    links: [{ label: "フレネミー/ Krush【オリジナル楽曲】", url: "https://youtu.be/6YKut5aPnuk?si=bAyySTT5k1VHAYHD" }],
+  },
+  {
+    name: "Krush 様",
+    status: "Video Works",
+    date: "2026-09-18",
+    tags: ["MV", "歌ってみた", "Shorts"],
+    ytId: "elfqXQpuz2I",
+    links: [{ label: "Bang Bang Bang", url: "https://youtube.com/shorts/elfqXQpuz2I?si=K7lo-9MCHAryoBPD" }],
+  },
+  {
+    name: "ゆうぎり高校 様",
+    status: "Video Works",
+    date: "2026-08-28",
+    tags: ["MV", "Log-!N"],
+    ytId: "B1Bq2Mp1npk",
+    links: [{ label: "篠崎シャノン - Sweet & Bitter（Official Music Video）", url: "https://youtu.be/B1Bq2Mp1npk?si=vbKh31NYGygT0-Yu" }],
+  },
+  {
+    name: "ゆにれいど ! 様",
+    status: "Video Works",
+    date: "2026-07-21",
+    tags: ["MV", "歌ってみた", "Log-!N"],
+    ytId: "ruLioMAoPi4",
+    links: [{ label: "長く短い祭 / 椎名林檎 (Covered by コンプサウルス/聖ルナティア）【 異世界れこーど！】", url: "https://youtu.be/ruLioMAoPi4?si=m5c0ktxoMKdzK2Aq" }],
+  },
+  {
+    name: "宵崎 獅白 様",
+    status: "Video Works",
+    date: "2026-07-07",
+    tags: ["MV", "歌ってみた"],
+    ytId: "c6q72uyarP4",
+    links: [{ label: "とても素敵な六月でした / Covered by 宵崎 獅白", url: "https://youtu.be/c6q72uyarP4?si=S4W530CfkMze4GJ7" }],
+  },
+  {
+    name: "Ena 様 × Krush 様",
+    status: "Video Works",
+    date: "2026-07-04",
+    tags: ["MV", "歌ってみた"],
+    ytId: "TLNAlx0UrzE",
+    links: [{ label: "III / Ena × Krush 歌ってみた", url: "https://youtu.be/TLNAlx0UrzE?si=Hr-byJBHjq9VYF8X" }],
+  },
+  {
+    name: "シャロ 様",
+    status: "Video Works",
+    date: "2026-06-12",
+    tags: ["MV", "Vocaloid"],
+    ytId: "njXTSvwjWZo",
+    links: [{ label: "へるぱーていぱー！feat.ᴍ ɪ ᴋ ᴜ", url: "https://youtu.be/njXTSvwjWZo?si=i4mT8q1MIJTLbhCw" }],
+  },
+  {
+    name: "歌宵花瑠 様",
+    status: "Video Works",
+    date: "2026-02-28",
+    tags: ["MV", "Vocaloid"],
+    ytId: "khhx4gYrE5o",
+    links: [{ label: "メルティリップ (feat.初音ミク) / 歌宵花瑠", url: "https://youtu.be/khhx4gYrE5o?si=NJP2xrnlzTjQdtSb" }],
+  },
   {
     name: "いちプロ 様",
     status: "Video Works",
@@ -47,10 +120,3 @@ const WORKS = [
     links: [{ label: "ノンストップメドれ！【MV】-また切ない世界を生きる", url: "https://youtu.be/aPpe4zBk3OQ?si=0o_fPp8y8t2Oeqjx&t=231" }],
   },
 ];
-
-// 新しい順に並べ、古い方から番号（n）を振ったものを返す
-function sortedWorks() {
-  const list = WORKS.map((w, i) => ({ ...w, _i: i }));
-  list.sort((a, b) => (b.date || "").localeCompare(a.date || "") || a._i - b._i);
-  return list.map((w, i) => ({ ...w, n: list.length - i }));
-}

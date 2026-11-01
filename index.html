@@ -213,45 +213,6 @@
       width: clamp(210px, 50vw, 250px);
     }
 
-    /* 実績一覧への入口: 最新のサムネイルを束ねて重ね、触れると扇状に開く */
-    .we-stack {
-      position: relative;
-      display: block;
-      aspect-ratio: 16/9;
-      margin: 6px 0 4px;
-    }
-
-    .we-stack span {
-      position: absolute;
-      inset: 0;
-      border-radius: 6px;
-      background-color: #eae9e5;
-      background-size: cover;
-      background-position: center;
-      box-shadow: 0 1px 4px rgba(24, 24, 22, 0.06);
-      transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
-    .we-stack span:nth-last-child(3) {
-      transform: rotate(-6deg) translate(-10px, 5px) scale(0.95);
-    }
-
-    .we-stack span:nth-last-child(2) {
-      transform: rotate(4deg) translate(9px, 1px) scale(0.97);
-    }
-
-    .we-stack:hover span:nth-last-child(3) {
-      transform: rotate(-10deg) translate(-26px, 8px) scale(0.92);
-    }
-
-    .we-stack:hover span:nth-last-child(2) {
-      transform: rotate(7deg) translate(22px, 3px) scale(0.95);
-    }
-
-    .we-stack:hover span:last-child {
-      transform: translateY(-3px);
-    }
-
     .wnum {
       font-family: var(--mono);
       font-size: 9px;
@@ -1190,15 +1151,12 @@
           return `<div class="work-card">${wNum}<div class="wname">${esc(s.name || "")}</div>${st}<div class="wdesc">${esc(s.desc || "")}</div>${tagsHtml}${mediaHtml}${lk}</div>`;
         }
         case "works": {
-          // 件数・年・サムネイルは works.js（実績一覧のデータ）から
-          const list = typeof sortedWorks === "function" ? sortedWorks() : [];
-          const years = list.map((w) => (w.date || "").slice(0, 4)).filter(Boolean);
-          const span = years.length ? (years[0] === years[years.length - 1] ? years[0] : `${years[years.length - 1]} — ${years[0]}`) : "";
+          // 件数と年は works.js（実績一覧のデータ）から。サムネイルは載せない（一部の作品だけが前に出るので）
+          const list = typeof WORKS !== "undefined" ? WORKS : [];
+          const years = list.map((w) => (w.date || "").slice(0, 4)).filter(Boolean).sort();
+          const span = years.length ? (years[0] === years[years.length - 1] ? years[0] : `${years[0]} — ${years[years.length - 1]}`) : "";
           const meta = list.length ? `<div class="wmeta">${String(list.length).padStart(2, '0')} works${span ? " · " + esc(span) : ""}</div>` : "";
-          const thumbs = list.filter((w) => w.ytId).slice(0, 3).reverse()
-            .map((w) => `<span style="background-image: url('https://img.youtube.com/vi/${esc(w.ytId)}/maxresdefault.jpg')"></span>`).join("");
-          const stackHtml = thumbs ? `<a href="${esc(s.url)}" class="we-stack">${thumbs}</a>` : "";
-          return `<div class="work-card"><div class="wnum">WORKS</div><div class="wname">${esc(s.title || "")}</div>${meta}${stackHtml}<div class="wlinks"><a href="${esc(s.url)}" class="wlink">${esc(s.linkLabel || "一覧を見る →")}</a></div></div>`;
+          return `<div class="work-card"><div class="wnum">WORKS</div><div class="wname">${esc(s.title || "")}</div>${meta}<div class="wlinks"><a href="${esc(s.url)}" class="wlink">${esc(s.linkLabel || "一覧を見る →")}</a></div></div>`;
         }
         case "note": {
           const linkHtml = s.url

@@ -24,14 +24,17 @@
 // 開いている間、項目は球と同じ呼吸をし、緯度経度の動きに合わせて面がわずかに傾きます。
 // 項目の点からは枝が生えます。枝は跡の流れに沿って出て、しなりながら文字の下へ回り込み、そのまま下線になって文字を支えます。
 // 太さは筆のように根元で細く、下線へ入るところで太く、端で抜けます。流れ星が通ると枝が伸び、伸びきるころに文字が出ます。
-// 文字は板を敷かず水平に置き、地の色で縁取って後ろから浮かせます。パースは球のパネルと同じやり方で、中心では正面を向き、外ほど縁へ寝ます。
+// 文字は板を敷かず水平に置き、白く細い字に下へ落ちる影を付けて後ろから浮かせます。パースは球のパネルと同じやり方で、中心では正面を向き、外ほど縁へ寝ます。
 // はっきりした色は、流れ星と三角、選んでいる項目にだけ付きます。
 // 行き先は MENU と、その後ろに足す旧版（versions.js）。今いるページの項目は薄くなり、押しても何もしません。
+// 実績一覧・自主制作・依頼・相談は works.html の一枚の紙の部なので、行き先は紙の中の位置（#…）です。
+// 紙の上で押すと、ページは変わらずにその部へ滑って移り、メニューは閉じます。
 
 const MENU = [
   { label: "息吹", href: "./" },
-  { label: "実績一覧", href: "./works.html" },
-  { label: "依頼・相談", href: "./request.html" },
+  { label: "実績一覧", href: "./works.html#works" },
+  { label: "自主制作", href: "./works.html#personal" },
+  { label: "依頼・相談", href: "./works.html#request" },
 ];
 
 (() => {
@@ -46,31 +49,7 @@ const MENU = [
   // index.html の球（Q: 向き、P: 半径・遠近・色相など）。works.html には無いので、決まった値を使う
   const hasGlobe = typeof Q !== "undefined" && typeof P !== "undefined";
 
-  // ── 回転（四元数 [w,x,y,z]。index.html と同じ並び） ──
-  const qmul = (a, b) => [
-    a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
-    a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
-    a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
-    a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0],
-  ];
-  const qconj = (q) => [q[0], -q[1], -q[2], -q[3]];
-  // 回転角を k 倍し、max（rad）で頭打ちにする
-  function qscale(q, k, max) {
-    if (q[0] < 0) q = q.map((v) => -v);
-    const s = Math.hypot(q[1], q[2], q[3]);
-    if (s < 1e-6) return [1, 0, 0, 0];
-    const h = Math.min(2 * Math.atan2(s, q[0]) * k, max) / 2,
-      f = Math.sin(h) / s;
-    return [Math.cos(h), q[1] * f, q[2] * f, q[3] * f];
-  }
-  function qrot(q, v) {
-    const [w, x, y, z] = q;
-    return [
-      (1 - 2 * (y * y + z * z)) * v[0] + 2 * (x * y - w * z) * v[1] + 2 * (x * z + w * y) * v[2],
-      2 * (x * y + w * z) * v[0] + (1 - 2 * (x * x + z * z)) * v[1] + 2 * (y * z - w * x) * v[2],
-      2 * (x * z - w * y) * v[0] + 2 * (y * z + w * x) * v[1] + (1 - 2 * (x * x + y * y)) * v[2],
-    ];
-  }
+  // ── 球の向き（四元数 [w,x,y,z]。index.html と同じ並び）から経度・緯度を取る ──
   const lonOf = (q) => Math.atan2(2 * (q[0] * q[2] + q[1] * q[3]), 1 - 2 * (q[2] * q[2] + q[3] * q[3]));
   const latOf = (q) => Math.asin(Math.max(-1, Math.min(1, 2 * (q[0] * q[1] - q[3] * q[2]))));
   function globe(now) {
@@ -127,10 +106,10 @@ const MENU = [
        写真・動画・サムネイルはもう一度反転して元の色に戻す。
        跡と項目の点・線（.orb-trail・.orb-svg）は背景の線の仲間なので、後ろと一緒に反転する */
     html, body { transition: background-color 0.15s; }
-    body > :not(.orb), body > :not(.orb) :is(img, video, iframe, .has-img, .we-stack span), .orb-trail, .orb-svg { transition: filter 0.15s; }
+    body > :not(.orb), body > :not(.orb) :is(img, video, iframe, .has-img), .orb-trail, .orb-svg { transition: filter 0.15s; }
     html.orb-inv, html.orb-inv body { background-color: #0b0b0d; }
     html.orb-inv body > :not(.orb):not(script),
-    html.orb-inv body > :not(.orb) :is(img, video, iframe, .has-img, .we-stack span),
+    html.orb-inv body > :not(.orb) :is(img, video, iframe, .has-img),
     html.orb-inv .orb-trail, html.orb-inv .orb-svg { filter: invert(1); }
 
     .orb-trail, .orb-fx, .orb-svg, .orb-labels { position: fixed; inset: 0; z-index: 1001; width: 100%; height: 100%; pointer-events: none; }
@@ -147,22 +126,21 @@ const MENU = [
     .orb-sat .hit { fill: transparent; }
     .orb-sat .br, .orb-sat .p { fill: currentColor; }
     .orb-sat.is-here .p { fill: none; stroke: currentColor; stroke-width: 1; }
-    /* 文字は枝の先に乗る。板は敷かず、地の色で縁取って後ろの線や文字から浮かせる。
-       文字の層は反転しないので、反転中は文字と縁取りの明るさを入れ替える */
+    /* 文字は枝の先に乗る。色は枝（背景の接続線と同じ色相・彩度）に揃え、明るさだけ下げて地の上で読ませる。
+       選ぶと枝と一緒に色付く。反転中の枝は後ろと一緒に裏返った色（選んだ枝だけは元の色）で見えるので、文字もその色の明るい側にする */
     .orb-label {
       position: absolute; left: 0; top: 0; transform-origin: 0 0; white-space: nowrap; line-height: 1;
-      font-family: "Cormorant Garamond", serif; font-weight: 500; color: var(--text);
+      font-family: "Cormorant Garamond", serif; font-weight: 300; color: hsl(calc(var(--orb-hue) + 15), 18%, 40%);
     }
-    .orb-label span {
-      display: block; padding: 0.12em 0.2em 0.16em;
-      text-shadow: 0 0 2px var(--bg), 0 0 3px var(--bg), 0 0 6px var(--bg);
-    }
-    html.orb-inv .orb-label { color: var(--bg); }
-    html.orb-inv .orb-label span { text-shadow: 0 0 2px #0b0b0d, 0 0 3px #0b0b0d, 0 0 6px #0b0b0d; }
+    .orb-label.hot { color: hsl(calc(var(--orb-hue) + 15), 48%, 48%); }
+    html.orb-inv .orb-label { color: hsl(calc(var(--orb-hue) + 195), 18%, 64%); }
+    html.orb-inv .orb-label.hot { color: hsl(calc(var(--orb-hue) + 15), 48%, 66%); }
+    /* 白い影で、後ろの線や文字から字を切り離す。反転中は地の色で同じことをする */
+    .orb-label span { display: block; padding: 0.12em 0.2em 0.16em; text-shadow: 0 0 2px #fff, 0 0 6px rgba(255, 255, 255, 0.9), 0 0 14px rgba(255, 255, 255, 0.6); }
+    html.orb-inv .orb-label span { text-shadow: 0 0 2px #0b0b0d, 0 0 6px rgba(11, 11, 13, 0.9), 0 0 14px rgba(11, 11, 13, 0.6); }
     /* 旧版の年月。小さく等幅で、名前の後ろに添える */
     .orb-label small { font: 400 0.5em "DM Mono", monospace; letter-spacing: 0.08em; margin-left: 0.45em; vertical-align: 0.2em; opacity: 0.62; }
-    .orb-label.is-here { color: var(--text2); }
-    html.orb-inv .orb-label.is-here { color: var(--text3); }
+    .orb-label.is-here span { opacity: 0.6; }
     .orb-sat.no-link, .orb-label.no-link { cursor: default; }
     /* 選んでいる項目：点と枝にはっきりした色（枝は太くもなる）。点と枝は後ろと一緒に反転するので、反転中は反対の色で書いておく */
     .orb-sat.hot { color: hsl(calc(var(--orb-hue) + 15), 48%, 63%); }
@@ -202,7 +180,7 @@ const MENU = [
       el = document.createElement("div");
     g.setAttribute("class", "orb-sat");
     el.className = cls;
-    const isHere = !!m.href && !/^https?:/.test(m.href) && page(m.href) === here;
+    const isHere = !!m.href && !/^https?:/.test(m.href) && !m.href.includes("#") && page(m.href) === here;
     const link = !!m.href && !isHere;
     [g, el].forEach((n) => {
       if (isHere) n.classList.add("is-here");
@@ -249,7 +227,7 @@ const MENU = [
     it.lit = on;
     [it.g, it.el].forEach((n) => n.classList.toggle("lit", on));
   };
-  const LS = 22; // 項目の文字の大きさ（px）
+  const LS = 28.6; // 項目の文字の大きさ（px）
   const sats = MENU.map((m) => makeSat(m, "orb-label", LS));
   // 旧版は 1 つの項目にまとめる（今の版は息吹そのものなので出さない）。旧版が 1 つならその版を直接開き、増えたら v/ の一覧へ
   const olds = versions.filter((v) => !v.current),
@@ -590,7 +568,7 @@ const MENU = [
       pts = [...(nIn ? path.at(nIn, step) : []), ...out.pts],
       cum = [0];
     for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
-    shot = { pts, cum, nIn, t0: now, q0: gl.q.slice(), R0: ringR(gl.rN), dur: reduce ? 0 : (dOut * (pts.length - 1)) / (out.pts.length - 1) };
+    shot = { pts, cum, nIn, t0: now, R0: ringR(gl.rN), dur: reduce ? 0 : (dOut * (pts.length - 1)) / (out.pts.length - 1) };
     const tr = shot;
     // 項目は、跡のうち画面の端・下の操作盤から離れた所を、ダイヤルに近い方から使い、重ならない範囲で詰めて並べる。
     // 文字はみな跡の同じ側に出す。どちらの側にするかは、両方並べてみて、重なりと画面の端に押される量が少なく、短くまとまる方
@@ -633,10 +611,11 @@ const MENU = [
     };
     const hits = (a, b, m) => a[0] < b[2] + m && b[0] < a[2] + m && a[1] < b[3] + m && b[1] < a[3] + m,
       dotBox = ([X, Y]) => [X - 5, Y - 5, X + 5, Y + 5],
+      IG = 14, // 項目どうしの間（文字の箱と箱の間、px）
       clash = (c, placed) =>
         placed.filter(
           (o) =>
-            hits(c.b, o.b, 3) ||
+            hits(c.b, o.b, IG) ||
             hits(c.b, dotBox(o.dot), 0) ||
             hits(dotBox(c.dot), o.b, 0) ||
             Math.hypot(c.dot[0] - o.dot[0], c.dot[1] - o.dot[1]) < 20,
@@ -823,7 +802,10 @@ const MENU = [
       s = n && all.find((s) => s.g === n || s.el === n);
     if (!s || !s.link) return;
     if (/^https?:/.test(s.m.href)) window.open(s.m.href, "_blank", "noopener");
-    else location.href = s.m.href;
+    else {
+      location.href = s.m.href;
+      if (page(s.m.href) === here) close(360);
+    }
   }
   layer.addEventListener("click", (e) => activate(e.target));
   labels.addEventListener("click", (e) => activate(e.target));
@@ -836,20 +818,11 @@ const MENU = [
 
   // ── 描画 ──
   const ease = (k) => 1 - Math.pow(1 - k, 3);
-  // 跡を描く面：撃った時からの球の回転を、面の傾きにする（30°くらいで頭打ち）。
+  // 跡を描く面：画面に平らに置く（撃った後に球を回しても、跡と項目は動かない）。
   // 撃った後に RADIUS を変えると、跡はリングと一緒に伸び縮みする（k。極端にならないよう 0.8〜1.25 倍）
   function projector(tr, gl) {
-    const dq = qscale(qmul(gl.q, qconj(tr.q0)), 1, 0.5),
-      k = Math.max(0.8, Math.min(1.25, ringR(gl.rN) / tr.R0));
-    return {
-      dq,
-      k,
-      proj: (x, y) => {
-        const v = qrot(dq, [x * k, -y * k, 0]),
-          s = gl.f / (gl.f - v[2]);
-        return [cx + v[0] * s, cy - v[1] * s, s];
-      },
-    };
+    const k = Math.max(0.8, Math.min(1.25, ringR(gl.rN) / tr.R0));
+    return { k, proj: (x, y) => [cx + x * k, cy + y * k, 1] };
   }
   // 跡：背景のヘリックスと同じ巻き方・色の 2 本のより線（RATE が 0 なら 1 本に重なる）と、背景と同じ横木。
   // 巻きの位相も背景と同じく経度で回る。濃さは AMP で、ガタつきは NOISE で背景と一緒に変わる。
@@ -976,13 +949,13 @@ const MENU = [
   // 跡の上の点から枝が出る。枝は跡の進む向きに沿って生え、撃った時に決めた側（pos.side）へしなって、文字の下線になる。
   // 枝の長さは球と同じ呼吸でわずかに伸び縮みし、戻すときは根元へ縮む。
   // 文字は水平に置き、パースは index.html のパネルと同じ式で付ける。文字の位置を、メニュー用の球（画面の対角より一回り大きい）の上の点と見て、
-  // その法線を撃ってからの球の回転 dq で回し、法線へ向けて傾ける。中心の文字は正面を向き、外ほど縁へ寝る。
+  // その法線へ向けて傾ける。中心の文字は正面を向き、外ほど縁へ寝る。
   // ただし寝かせる角度は法線の角度の TILT 倍に抑える（隅でも 20° くらい）。パネルと同じだけ寝かせると、画面の端の文字が細く小さく見えて読みにくい。
   // 奥行き dm で薄く・ぼかすのはパネルと同じ。小さくするのは 6% まで（端の文字も小さくしすぎない）。
   // 回す順だけはパネルと逆（X→Y）。パネルの順（Y→X）だと斜めの位置で縦画が経線に沿って倒れ、斜体に見える。逆なら縦画は立ったまま、行が傾く
   const TILT = 0.4;
   function placeAt(it, pos, gl, kc) {
-    const { dq, k, proj } = projector(pos.tr, gl),
+    const { k, proj } = projector(pos.tr, gl),
       RS = Math.hypot(W, H) / 2 / 0.8,
       nx = -pos.ty * pos.side,
       ny = pos.tx * pos.side,
@@ -995,7 +968,7 @@ const MENU = [
       tl = Math.hypot(T[0] - B[0], T[1] - B[1]) || 1,
       wx = (ax * k) / RS,
       wy = (-ay * k) / RS,
-      [qx, qy, qz] = qrot(dq, [wx, wy, Math.sqrt(Math.max(0, 1 - wx * wx - wy * wy))]),
+      [qx, qy, qz] = [wx, wy, Math.sqrt(Math.max(0, 1 - wx * wx - wy * wy))],
       dm = (qz + 1) / 2,
       sc = (0.94 + dm * 0.06) * S[2],
       fs = it.size * sc,

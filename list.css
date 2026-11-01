@@ -1,0 +1,617 @@
+/* ====== 紙（works.html）の見た目 ======
+   息吹以外の、実績一覧・自主制作・依頼・相談が上から続く一枚の紙。一覧の描き方は list.js、右の目盛は scale.js */
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@300;400&family=Playfair+Display:wght@400;500&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #f4f4f2;
+  --bg2: #eeeee9;
+  --border: #d4d4d0;
+  --border2: #e2e2dd;
+  --text: #181816;
+  --text2: #6a6a65;
+  --text3: #b0b0aa;
+  --text4: #c8c8c2;
+  --serif: "Cormorant Garamond", serif;
+  --mono: "DM Mono", monospace;
+}
+
+html,
+body {
+  background: var(--bg);
+}
+
+body {
+  font-family: var(--serif);
+  color: var(--text);
+  font-size: 15px;
+  min-height: 100dvh;
+  /* 文字は選べない（index.html と同じ） */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0.028;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+}
+
+/* top bar */
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 56px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(to bottom, rgba(244, 244, 242, 0.96) 55%, rgba(244, 244, 242, 0) 100%);
+}
+
+.back {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.back:hover {
+  color: var(--text);
+}
+
+/* list */
+.wrap {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px 16px 96px;
+}
+
+/* 部（実績一覧・自主制作・依頼・相談）は間を空けて続く。見出しや目盛で移ると、部の頭は上の帯（.top）の下で止まる */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+.part {
+  scroll-margin-top: 72px;
+}
+
+.part + .part {
+  margin-top: 120px;
+}
+
+.sec-head {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text4);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+h1,
+h2.title {
+  /* あおぞら明朝 thin は、端末に入っているときだけ効く（配信はしていない。前の配信先は 404 だった）。無ければ Playfair Display と明朝 */
+  font-family: 'Aozora Mincho Thin', "Playfair Display", var(--serif);
+  font-size: clamp(30px, 6vw, 42px);
+  font-weight: 100;
+  letter-spacing: 0.043em;
+  line-height: 1;
+  display: inline-block;
+  transform: scaleY(0.86);
+  transform-origin: center bottom;
+}
+
+.count {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  margin-top: 14px;
+}
+
+.works {
+  list-style: none;
+  margin-top: 44px;
+  border-bottom: 1px solid var(--border2);
+}
+
+/* 1件は、左に小さいサムネイル、右に情報。再生すると、その件だけ動画が横幅いっぱいに広がり、情報はその下に回る */
+.work {
+  padding: 22px 0;
+  border-top: 1px solid var(--border2);
+  display: grid;
+  grid-template-columns: 196px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.work.no-media {
+  grid-template-columns: 1fr;
+}
+
+.work.playing .yt,
+.work.playing .winfo {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 480px) {
+  .work {
+    grid-template-columns: 116px 1fr;
+    gap: 14px;
+  }
+}
+
+.winfo {
+  min-width: 0;
+}
+
+.whead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.wnum,
+.wyear {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+
+.wnum {
+  color: var(--text4);
+}
+
+.wyear {
+  color: var(--text3);
+}
+
+.wname {
+  font-size: clamp(17px, 4vw, 21px);
+  font-weight: 400;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+
+.wmeta {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text4);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: -2px 0 10px;
+}
+
+.wdesc {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.7;
+  font-weight: 300;
+  margin-bottom: 12px;
+}
+
+.wdesc:empty {
+  display: none;
+}
+
+.wtags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 4px;
+}
+
+.tag {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--text3);
+  border: 1px solid var(--border2);
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+
+.wlinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.wlink,
+.wghost {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  padding-bottom: 2px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.wlink {
+  color: var(--text);
+  border-bottom: 1px solid var(--text);
+  transition: opacity 0.2s;
+}
+
+.wlink:hover {
+  opacity: 0.45;
+}
+
+.wghost {
+  color: var(--text4);
+  border-bottom: 1px solid var(--border);
+}
+
+/* 動画の無い物のサムネイル。画像の縦横比はまちまちなので、16:9 の枠に収める */
+.thumb {
+  aspect-ratio: 16/9;
+  width: 100%;
+  border-radius: 6px;
+  background: center / contain no-repeat;
+}
+
+.yt {
+  aspect-ratio: 16/9;
+  width: 100%;
+  background: #eae9e5;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.yt.is-disabled {
+  cursor: default;
+  background: linear-gradient(135deg, #ecebe7, #e4e3df);
+}
+
+.yt.is-disabled .yt-play {
+  border-color: rgba(24, 24, 22, 0.14);
+  opacity: 0.5;
+}
+
+.yt-play {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid rgba(24, 24, 22, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.25s,
+    background 0.25s,
+    border-color 0.25s;
+  position: relative;
+  z-index: 1;
+}
+
+.yt:hover .yt-play {
+  transform: scale(1.06);
+}
+
+.yt-play svg {
+  margin-left: 2px;
+  width: 10px;
+  height: 10px;
+}
+
+.yt-play polygon {
+  fill: rgba(24, 24, 22, 0.45);
+  transition: fill 0.25s;
+}
+
+.yt iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 6px;
+}
+
+.yt.has-img::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.04);
+  transition: background 0.3s;
+}
+
+.yt.has-img:hover::before {
+  background: rgba(0, 0, 0, 0);
+}
+
+.yt.has-img .yt-play {
+  border-color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.yt.has-img .yt-play polygon {
+  fill: rgba(255, 255, 255, 0.95);
+}
+
+.yt.has-img:hover .yt-play {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 1);
+}
+
+/* 依頼・相談 */
+.lead {
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--text2);
+  line-height: 1.9;
+  white-space: pre-line;
+  margin-top: 26px;
+}
+
+.sec {
+  margin-top: 44px;
+  padding-top: 30px;
+  border-top: 1px solid var(--border2);
+}
+
+/* 料金目安（index.html の price と同じ並び） */
+.pr-block {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border2);
+}
+
+.pr-block:last-child {
+  border-bottom: 0;
+}
+
+.pr-group-name,
+.pr-single-name {
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.pr-group-name {
+  margin-bottom: 8px;
+}
+
+.pr-sub-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.pr-sub-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding-left: 6px;
+}
+
+.pr-sub-amt,
+.pr-single-amt {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.pr-sub-amt {
+  width: 76px;
+  flex-shrink: 0;
+}
+
+.pr-sub-desc {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--text2);
+}
+
+.pr-single-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+}
+
+/* 連絡先 */
+.ways {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.way {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.way-k {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  width: 76px;
+  flex-shrink: 0;
+}
+
+.way-v {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  letter-spacing: 0.04em;
+  word-break: break-all;
+}
+
+a.way-v {
+  text-decoration: none;
+  border-bottom: 1px solid var(--text);
+  padding-bottom: 1px;
+  transition: opacity 0.2s;
+}
+
+a.way-v:hover {
+  opacity: 0.45;
+}
+
+/* 依頼テンプレート（index.html の Contact と同じ並び） */
+.tpl {
+  padding: 18px;
+  background: var(--bg2);
+  border-radius: 5px;
+}
+
+.tpl-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 18px;
+}
+
+@media (max-width: 480px) {
+  .tpl-body {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+.tpl-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tpl-lbl {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text);
+}
+
+.tpl-val {
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.cbtn {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  margin-top: 16px;
+  letter-spacing: 0.08em;
+  display: block;
+  transition: color 0.2s;
+}
+
+.cbtn:hover {
+  color: var(--text);
+}
+
+.foot {
+  margin-top: 56px;
+  border-top: 1px solid var(--border2);
+  padding-top: 28px;
+}
+
+/* ── 右の目盛（scale.js） ──
+   紙の長さを写した縦の目盛。縦の線は引かず、左右対称の刻みだけを並べる（刻みと針は scale.js が描く）。
+   見出しは縦書きで刻みの列の上に乗り、部の頭の位置から下へ伸びて、そのまま大きな区切りになる。
+   文字一つ分の幅しか取らないので、スマホでも広い画面でも同じ形で読めて押せる */
+.scale {
+  position: fixed;
+  top: 96px;
+  bottom: 48px;
+  right: 40px;
+  width: 1px;
+  z-index: 5;
+}
+
+/* 刻みの軸が .scale の 1px の中に来るように置く（片側 12px） */
+.scale-ticks {
+  position: absolute;
+  top: 0;
+  left: -12px;
+  width: 25px;
+  height: 100%;
+}
+
+/* 押せる所は文字の左右に 10px ずつ広げる */
+.scale-head {
+  position: absolute;
+  left: 0.5px;
+  transform: translateX(-50%);
+  padding: 4px 10px;
+  writing-mode: vertical-rl;
+  color: var(--text3);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+/* 縦書きの字の中心を軸に合わせるため、和文の明朝を先に置く（欧文の書体が先だと、その寸法で字が横へずれる）。
+   字間は最後の字の後ろにも付くので、その分を下の余白から引いて、上下の空きを揃える */
+.scale-head span {
+  display: block;
+  padding: 6px 0 calc(6px - 0.2em);
+  font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "Noto Serif JP", serif;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 0.2em;
+  white-space: nowrap;
+}
+
+/* 指で押した後に色が残らないように、hover は指し示せる端末だけ */
+@media (hover: hover) {
+  .scale-head:hover {
+    color: var(--text2);
+  }
+}
+
+.scale-head.is-here {
+  color: var(--text);
+}
+
+/* スマホでは目盛を右の端へ寄せ、本文の右に目盛の分だけ空ける */
+@media (max-width: 799px) {
+  .wrap {
+    padding-right: 38px;
+  }
+
+  .scale {
+    top: 72px;
+    bottom: 24px;
+    right: 14px;
+  }
+}

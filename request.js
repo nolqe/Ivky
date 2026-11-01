@@ -1,5 +1,5 @@
 // ====== 依頼・相談のデータ ======
-// request.html（依頼・相談）と index.html（料金目安・Contact・南極の枠）の両方がここを読みます。
+// works.html の依頼・相談の部と index.html（料金目安・Contact・南極の枠）の両方がここを読みます。
 // PRICE は料金目安。isGroup: true は名前の下に金額と内容を並べ、false は名前と金額を 1 行で出します。
 // CONTACT は連絡の案内。template は依頼テンプレート（label が項目名、ph が書き方の例。コピーされるのは項目名だけ）。
 
