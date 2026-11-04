@@ -7,13 +7,13 @@
 // そこから彗星のように惑星（画面の中心）へ吸い込まれて加速し、背景のリングに乗って半周ほど回ってから、また画面の外へ遠ざかります。
 // 外へ向けて撃っても、引力で弧を描いて戻ってきます。
 // 狙いでリングへの入り方と回る向きが変わり、球の緯度が大きいとリングの外を大回りしたり内側でループしたりします。
-// 跡の上に行き先の点と文字が残ります。ダイヤルに近いところから詰めて並び、MENU の順で、最後が旧版（versions.js）です。
+// 跡のうち円環に近い部分に行き先の点と文字が残ります。MENU の順で、最後が旧版（versions.js）です。
 // 何度でも撃てて、前の流れ星も最後まで飛ぶので、連打するといくつも同時に飛びます。
 // 撃ち直すと、新しい流れ星が通ったところで項目が今の場所から新しい跡へ滑って移ります。
-// 跡は流れ星が通ったそばから薄れて消え、項目が並ぶ区間だけが茎として残ります（撃ち直すか戻すと、前の茎も消えます）。
+// 通った軌道は少しずつ薄れ、淡い線が重なって残ります。
 // メニューは幕ではありません。開いている間も後ろ（球・パネル・操作盤）は普通に触れます。
 // 流れ星が飛んでいる間だけ、画面の明暗が反転します（写真と動画はそのまま）。その間は項目の枝も太くなります。
-// 項目に触れずにしばらく経つか、項目の外をダブルクリックするか、Esc で元に戻ります。
+// 項目の外を押すか、しばらく触れずにいると項目が閉じます。
 // 跡と項目の線は、背景の線（index.html の drawBg・drawConnections）の仲間として描きます。同じ変数が同じように効きます：
 //   RADIUS … 惑星（リング）の大きさ。撃った後に変えると跡もリングと一緒に伸び縮みする。負（裏返り）だと跡もリングと同じく破線・反対の色相になる
 //   PERSP  … リングの傾き。軌道はリングと同じ傾いた面の上で、リングに沿って回る。項目のパースの強さも
@@ -130,14 +130,14 @@ const MENU = [
        選ぶと枝と一緒に色付く。反転中の枝は後ろと一緒に裏返った色（選んだ枝だけは元の色）で見えるので、文字もその色の明るい側にする */
     .orb-label {
       position: absolute; left: 0; top: 0; transform-origin: 0 0; white-space: nowrap; line-height: 1;
-      font-family: "Cormorant Garamond", serif; font-weight: 300; color: hsl(calc(var(--orb-hue) + 15), 18%, 40%);
+      font-family: "Cormorant Garamond", serif; font-weight: 300; color: hsl(calc(var(--orb-hue) + 15), 18%, 34%);
     }
     .orb-label.hot { color: hsl(calc(var(--orb-hue) + 15), 48%, 48%); }
-    html.orb-inv .orb-label { color: hsl(calc(var(--orb-hue) + 195), 18%, 64%); }
+    html.orb-inv .orb-label { color: hsl(calc(var(--orb-hue) + 195), 18%, 72%); }
     html.orb-inv .orb-label.hot { color: hsl(calc(var(--orb-hue) + 15), 48%, 66%); }
     /* 白い影で、後ろの線や文字から字を切り離す。反転中は地の色で同じことをする */
-    .orb-label span { display: block; padding: 0.12em 0.2em 0.16em; text-shadow: 0 0 2px #fff, 0 0 6px rgba(255, 255, 255, 0.9), 0 0 14px rgba(255, 255, 255, 0.6); }
-    html.orb-inv .orb-label span { text-shadow: 0 0 2px #0b0b0d, 0 0 6px rgba(11, 11, 13, 0.9), 0 0 14px rgba(11, 11, 13, 0.6); }
+    .orb-label span { display: block; padding: 0.12em 0.2em 0.16em; text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 0 9px rgba(255, 255, 255, 0.7); }
+    html.orb-inv .orb-label span { text-shadow: 0 0 2px #0b0b0d, 0 0 4px #0b0b0d, 0 0 9px rgba(11, 11, 13, 0.7); }
     /* 旧版の年月。小さく等幅で、名前の後ろに添える */
     .orb-label small { font: 400 0.5em "DM Mono", monospace; letter-spacing: 0.08em; margin-left: 0.45em; vertical-align: 0.2em; opacity: 0.62; }
     .orb-label.is-here span { opacity: 0.6; }
@@ -227,7 +227,7 @@ const MENU = [
     it.lit = on;
     [it.g, it.el].forEach((n) => n.classList.toggle("lit", on));
   };
-  const LS = 28.6; // 項目の文字の大きさ（px）
+  const BASE_LS = 28.6, LS = BASE_LS * 0.7; // 項目は従来の0.7倍。円環付近の候補を探す幅は元の寸法を基準にする。
   const sats = MENU.map((m) => makeSat(m, "orb-label", LS));
   // 旧版は 1 つの項目にまとめる（今の版は息吹そのものなので出さない）。旧版が 1 つならその版を直接開き、増えたら v/ の一覧へ
   const olds = versions.filter((v) => !v.current),
@@ -251,8 +251,12 @@ const MENU = [
     KR = 15, // 真ん中のつまみの半径（ここを持つと動かす。外側の縁を持つと回す）
     BR = 18, // 枝の長さ（跡から文字の下線まで）
     GROW = 420; // 枝が伸びきるまで（ms）
-  // 文字を枝の先から右へ伸ばすか（start）左へ伸ばすか（end）。枝の出る向き nx で決め、ほぼ縦なら跡の進む向き tx で
-  const ancOf = (nx, tx) => (nx > 0.2 ? "start" : nx < -0.2 ? "end" : tx >= 0 ? "start" : "end");
+  const labelBox = (x, y, w, h, anc, angle) => {
+    const c = Math.cos(angle), s = Math.sin(angle), start = anc === "start" ? 0 : -w,
+      pts = [[start, -h / 2], [start + w, -h / 2], [start, h / 2], [start + w, h / 2]]
+        .map(([u, v]) => [x + u * c - v * s, y + u * s + v * c]);
+    return [Math.min(...pts.map(p => p[0])), Math.min(...pts.map(p => p[1])), Math.max(...pts.map(p => p[0])), Math.max(...pts.map(p => p[1]))];
+  };
   function measure() {
     W = document.documentElement.clientWidth;
     H = innerHeight;
@@ -395,6 +399,32 @@ const MENU = [
       s = Math.sin(RING_ROT);
     return { toS: (x, y) => [x * c - y * t * s, x * s + y * t * c], fromS: (X, Y) => [X * c + Y * s, (-X * s + Y * c) / t] };
   }
+  // 輪の面で枝元の方位を取り、円に沿う接線を画面へ写す。
+  function ringLabelPose(x, y, tilt, fromS) {
+    const [u, v] = fromS(x, y),
+      radius = Math.hypot(u, v) || 1,
+      flatten = tilt * 0.92, // 背景の中段の輪と同じ投影
+      depth = Math.sqrt(Math.max(0, 1 - flatten * flatten)),
+      cos = Math.cos(RING_ROT), sin = Math.sin(RING_ROT),
+      tangentX = -v / radius, tangentY = u / radius,
+      sx = tangentX * cos - tangentY * flatten * sin,
+      sy = tangentX * sin + tangentY * flatten * cos,
+      screenLength = Math.hypot(sx, sy),
+      tangentAngle = Math.atan2(2 * sx * sy, 2.8 * sx * sx + 1.6 * sy * sy),
+      // 接線が奥へ向いて短く見える所では、輪全体の傾きを優先する。
+      // 奥行きの大きい位置でも、隣り合う文字の傾きが逆向きに跳ねにくい。
+      ringAngle = RING_ROT * 0.55,
+      angle = ringAngle + (tangentAngle - ringAngle) * screenLength ** 2,
+      // 横方向は接線の奥行き。縦方向は輪の面の傾きを弱く効かせる。
+      yaw = -Math.atan2(tangentY * depth, screenLength) * (sx / (screenLength || 1)),
+      pitch = Math.atan2(depth * Math.cos(RING_ROT - angle), Math.max(0, flatten));
+    return {
+      angle,
+      rX: pitch * (14 / (Math.PI / 2)),
+      rY: yaw * (18 / (Math.PI / 2)),
+      shade: 0.93 + v / radius * depth * 0.07,
+    };
+  }
   function trajectory(px, py, ang, lat, rN, tilt) {
     const { toS, fromS } = planeOf(tilt);
     [px, py] = fromS(px, py);
@@ -529,27 +559,25 @@ const MENU = [
   }
 
   // ── 撃つ・開く・戻す ──
-  // trails は撃った跡（古い順）で、最後が一番新しい流れ星（shot。項目はこれに従って並ぶ）。end は戻したときに止めた所（点の番号）
+  // trails は撃った跡（古い順）。shot は項目が従う一番新しい流れ星。
   const STAY = 10000, // 項目に触れずにこれだけ経つと元に戻す（ms）
-    IN = 360, // 流れ星が画面の外からダイヤルに着くまで（ms）
-    FADE = 700, // 跡が、流れ星が通ってから薄れて消えるまでの目安（ms）
-    STEM = 0.13, // 茎（項目が並ぶ区間の跡）の濃さ（飛んでいる間の跡は 0.24）
-    STEM_OUT = 700; // 撃ち直したり戻したりしたときに、前の茎が消えるまで（ms）
+    IN = 360, // 入射の点列を保つ元の時間（ms）。実際の通過時刻は fire の速度補正で決める。
+    TRAIL_FADE = 700, // 通過直後の明るい跡が淡い線に馴染む時間（ms）
+    TRAIL_REST = 0.13; // 背景の輪と一緒に見える、通過後の線の濃さ
   let state = "closed",
     shot = null,
     trails = [],
     closeT0 = 0,
     closeDur = 360;
-  const headAt = (tr, now) => (tr.end != null ? tr.end : (tr.dur ? Math.max(0, Math.min(1, (now - tr.t0) / tr.dur)) : 1) * (tr.pts.length - 1));
+  const headAt = (tr, now) => {
+    if (!tr.dur) return tr.pts.length - 1;
+    const t = Math.max(0, Math.min(tr.dur, now - tr.t0));
+    let a = 0, b = tr.times.length - 1;
+    while (b - a > 1) { const m = (a + b) >> 1; if (tr.times[m] > t) b = m; else a = m; }
+    return a + (t - tr.times[a]) / (tr.times[b] - tr.times[a] || 1);
+  };
   // 流れ星がまだ飛んでいるか（rAF の時刻は撃った時刻より前のことがある）。撃ち直しても前の流れ星は最後まで飛ぶ
-  const flying = (tr, now, extra = 0) => tr.end == null && now < tr.t0 + tr.dur + extra;
-  // 流れ星をそこで止めて、跡だけを残す（抜け終わっていれば、抜けた時刻から薄れていく）
-  function cut(tr, now) {
-    if (tr && tr.end == null) {
-      tr.end = headAt(tr, now);
-      tr.tEnd = Math.min(now, tr.t0 + tr.dur);
-    }
-  }
+  const flying = (tr, now, extra = 0) => now < tr.t0 + tr.dur + extra;
   function fire(now) {
     measure();
     const gl = globe(now),
@@ -568,16 +596,34 @@ const MENU = [
       pts = [...(nIn ? path.at(nIn, step) : []), ...out.pts],
       cum = [0];
     for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
-    shot = { pts, cum, nIn, t0: now, R0: ringR(gl.rN), dur: reduce ? 0 : (dOut * (pts.length - 1)) / (out.pts.length - 1) };
+    // 点列・力場には触れず、各点を通る時刻だけを変える。手前2倍、通過後1.4倍。
+    let gate = 0, near = Infinity;
+    for (let i = 0; i <= nIn; i++) {
+      const d = Math.hypot(pts[i][0] + cx - dial.x, pts[i][1] + cy - dial.y);
+      if (d < near) { near = d; gate = i; }
+    }
+    const times = [0], dt = dOut / (out.pts.length - 1);
+    for (let i = 1; i < pts.length; i++) {
+      const u = Math.max(0, Math.min(1, (i - gate) / Math.max(2, nIn - gate))),
+        speed = 2 - 0.6 * u * u * (3 - 2 * u);
+      times.push(times[i - 1] + dt / speed);
+    }
+    shot = { pts, cum, times, nIn, t0: now, R0: ringR(gl.rN), dur: times[times.length - 1] };
     const tr = shot;
-    // 項目は、跡のうち画面の端・下の操作盤から離れた所を、ダイヤルに近い方から使い、重ならない範囲で詰めて並べる。
-    // 文字はみな跡の同じ側に出す。どちらの側にするかは、両方並べてみて、重なりと画面の端に押される量が少なく、短くまとまる方
-    const bottom = H - (strip ? strip.offsetHeight : 0) - 16,
-      ok = ([x, y]) => {
+    // 元の配置方法で、円環の周辺を通る部分だけを使う。軌道の計算には触れない。
+    // 枝の向きと長さで文字の重なりを避け、円環の外側を優先する。
+    const ringTilt = bgVars(gl).tilt,
+      { toS, fromS } = planeOf(ringTilt),
+      radius = ringR(gl.rN),
+      ring = Array.from({ length: 96 }, (_, i) => toS(radius * RING_K * Math.cos(i * TAU / 96), radius * RING_K * Math.sin(i * TAU / 96))),
+      reach2 = (BASE_LS * 3.2) ** 2,
+      bottom = H - (strip ? strip.offsetHeight : 0) - 16,
+      onScreen = ([x, y]) => {
         const X = x + cx,
           Y = y + cy;
         return X > 36 && X < W - 36 && Y > 36 && Y < bottom && Math.hypot(X - dial.x, Y - dial.y) > DR + 30;
-      };
+      },
+      ok = ([x, y]) => onScreen([x, y]) && ring.some(([u, v]) => (x - u) ** 2 + (y - v) ** 2 < reach2);
     all.forEach((it) => {
       it.w = it.el.offsetWidth / it.size;
       it.h = it.el.offsetHeight / it.size;
@@ -589,71 +635,79 @@ const MENU = [
       return [(b[0] - a[0]) / d, (b[1] - a[1]) / d];
     };
     // 跡の点 i に置いたときの点と文字の四角（撃った時の面で）。枝は跡から side の側（法線）へ出て、その先で文字の下線になる。
-    // 文字の向き anc は ancOf で決め、画面の端に押し付けられるときは反対へ（drawItems はこの向きを使う）。fixed を渡すとその向きにする。
-    // press は端に押されて枝の先から離れた量
-    const boxAt = (i, it, side, fixed) => {
+    // 文字は輪の接線に沿わせる。press は画面の端に押されて枝の先から離れた量。
+    const poses = [];
+    const poseAt = (i) => poses[i] ??= ringLabelPose(...tr.pts[i], ringTilt, fromS);
+    const boxAt = (i, it, side, branchLength) => {
       const [x, y] = tr.pts[i],
         [tx, ty] = tanAt(i),
         nx = -ty * side,
         ny = tx * side,
         w = it.w * it.size,
         h = it.h * it.size,
-        ll = BR * it.vr.len + Math.max(0, ny) * h,
+        ll = BR * branchLength + Math.max(0, ny) * h,
         sx = cx + x + nx * ll,
         sy = cy + y + ny * ll;
-      let anc = fixed || ancOf(nx, tx);
-      if (!fixed && anc === "start" && sx + w > W - 10 && sx - w > 10) anc = "end";
-      else if (!fixed && anc === "end" && sx - w < 10 && sx + w < W - 10) anc = "start";
-      const want = anc === "start" ? sx : sx - w,
-        x0 = Math.max(10, Math.min(W - 10 - w, want)),
-        y1 = Math.max(10 + h, Math.min(H - 10, sy));
-      return { anc, side, dot: [cx + x, cy + y], b: [x0, y1 - h, x0 + w, y1 + 2], press: Math.abs(x0 - want) + Math.abs(y1 - sy) };
+      const anc = sx >= cx ? "start" : "end",
+        b = labelBox(sx, sy - h / 2, w, h, anc, poseAt(i).angle),
+        dx = Math.max(0, 10 - b[0]) - Math.max(0, b[2] - W + 10),
+        dy = Math.max(0, 10 - b[1]) - Math.max(0, b[3] - bottom);
+      return { anc, side, branchLength, dot: [cx + x, cy + y], b: [b[0]+dx,b[1]+dy,b[2]+dx,b[3]+dy], press: Math.abs(dx)+Math.abs(dy) };
     };
     const hits = (a, b, m) => a[0] < b[2] + m && b[0] < a[2] + m && a[1] < b[3] + m && b[1] < a[3] + m,
       dotBox = ([X, Y]) => [X - 5, Y - 5, X + 5, Y + 5],
       IG = 14, // 項目どうしの間（文字の箱と箱の間、px）
-      clash = (c, placed) =>
-        placed.filter(
-          (o) =>
-            hits(c.b, o.b, IG) ||
-            hits(c.b, dotBox(o.dot), 0) ||
-            hits(dotBox(c.dot), o.b, 0) ||
-            Math.hypot(c.dot[0] - o.dot[0], c.dot[1] - o.dot[1]) < 20,
-        ).length;
-    // 跡に沿って side の側へ並べてみる。前の項目の少し先から、重ならない最初の所に置く。
-    // 文字の向きは最初の項目で決めたものに揃える（跡が曲がっても、列から飛び出す項目が出ないように）。
+      clash = (c, placed) => placed.reduce((n, o) => n
+        + (hits(c.b, o.b, IG) ? 100 : 0)
+        + (hits(c.b, dotBox(o.dot), 0) || hits(dotBox(c.dot), o.b, 0) ? 10 : 0)
+        + (Math.hypot(c.dot[0] - o.dot[0], c.dot[1] - o.dot[1]) < 20 ? 1 : 0), 0);
+    // 円環付近の弧全体へ分散する。各位置で枝の左右と長さを試す。
     // ダイヤルも先に置いた物として扱い、文字がダイヤル（と三角）の下に入らないようにする
     const DB = DR + 12;
+    const candidates = [];
+    for (let i = tr.nIn + 1; i < tr.pts.length; i++) if (ok(tr.pts[i])) candidates.push(i);
+    const candidateSet = new Set(candidates);
     const layout = (side) => {
       const placed = [{ dot: [dial.x, dial.y], b: [dial.x - DB, dial.y - DB, dial.x + DB, dial.y + DB] }],
         picks = [];
       let from = tr.nIn + 1,
-        cost = 0,
-        anc0 = null;
-      all.forEach((it) => {
+        cost = 0;
+      all.forEach((it, k) => {
+        if (candidates.length) {
+          const first = tr.cum[candidates[0]], last = tr.cum[candidates[candidates.length - 1]],
+            target = first + (last - first) * (0.06 + 0.88 * k / Math.max(1, all.length - 1)),
+            at = candidates.find((i) => tr.cum[i] >= target) ?? candidates[candidates.length - 1];
+          from = Math.min(candidates[candidates.length - 1], Math.max(from, at));
+        }
         let pick = -1,
           best = Infinity,
-          bi = from;
+          bi = from,
+          chosen = null,
+          fallback = null;
         for (let i = from; i < tr.pts.length; i++) {
-          if (!ok(tr.pts[i])) continue;
-          const c = boxAt(i, it, side, anc0),
+          if (!candidateSet.has(i)) continue;
+          const options = [side, -side].flatMap((direction) => [1, 2, 3].map((length) => boxAt(i, it, direction, it.vr.len * length))),
+            c = options.sort((a, b) => clash(a, placed) - clash(b, placed) || a.press - b.press || a.branchLength - b.branchLength)[0],
             n = clash(c, placed);
           if (n === 0) {
             pick = i;
+            chosen = c;
             break;
           }
           if (n < best) {
             best = n;
             bi = i;
+            fallback = c;
           }
         }
         if (pick < 0) {
           pick = bi;
           cost += best * 1e6;
         }
-        const c = boxAt(pick, it, side, anc0);
-        anc0 = c.anc;
+        const c = chosen || fallback || boxAt(pick, it, side, it.vr.len);
         cost += c.press * 50;
+        const [x, y] = tr.pts[pick], [tx, ty] = tanAt(pick);
+        if ((-ty * x + tx * y) * c.side < 0) cost += L * 3;
         placed.push(c);
         picks.push({ i: pick, c });
         from = pick + 1;
@@ -667,13 +721,8 @@ const MENU = [
       const { i, c } = picks[k],
         [tx, ty] = tanAt(i);
       // 行き先として持っておく。灯っている項目は、流れ星がここを通るまで今の場所に残る（drawItems）
-      it.next = { x: tr.pts[i][0], y: tr.pts[i][1], s: tr.cum[i], anc: c.anc, side: c.side, tx, ty, tr: shot };
+      it.next = { x: tr.pts[i][0], y: tr.pts[i][1], s: tr.cum[i], anc: c.anc, side: c.side, branchLength: c.branchLength, tx, ty, pose: poseAt(i), tr: shot };
     });
-    // 茎：項目が並ぶ区間（跡の上の長さで）。この区間の跡だけが残る
-    shot.sA = Math.min(...picks.map((p) => tr.cum[p.i]));
-    shot.sB = Math.max(...picks.map((p) => tr.cum[p.i]));
-    // 前の跡の茎は、新しい流れ星がダイヤルに着くころから消していく（前の流れ星は最後まで飛ぶ）
-    trails.forEach((t) => t.old == null && (t.old = now + IN));
     trails.push(shot);
     // 反転は撃った瞬間に入れる（戻すのは frame で、流れ星が抜けたとき）
     if (!reduce) {
@@ -692,10 +741,6 @@ const MENU = [
   function close(dur) {
     if (state !== "open") return;
     const now = performance.now();
-    trails.forEach((t) => {
-      cut(t, now);
-      if (t.old == null || t.old > now) t.old = now;
-    });
     entry.setAttribute("aria-expanded", "false");
     root.classList.remove("open");
     state = "closing";
@@ -775,13 +820,14 @@ const MENU = [
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") close(360);
   });
-  // 項目の外をダブルクリックすると戻す（入口は連打で撃つので除く。操作盤はダブルクリックで値を戻すので除く）。
-  // ダブルクリックで後ろの単語が選ばれるので、戻したときはその選択も消す
-  document.addEventListener("dblclick", (e) => {
+  // 項目の外をクリックすると戻す。入口・項目・操作盤は、従来のダブルクリックと同じく除く。
+  const closeOutside = (e) => {
     if (state !== "open" || e.target.closest(".orb-entry, .orb-sat, .orb-label, #ctrl-strip")) return;
     close(360);
     getSelection()?.removeAllRanges();
-  });
+  };
+  document.addEventListener("click", closeOutside);
+  document.addEventListener("dblclick", closeOutside);
   // 幅が変わったら項目の置き場所が合わなくなるので、すぐ戻す（スマホでアドレスバーが出入りして高さだけ変わるときは戻さない）
   // ダイヤルは画面に対して同じ割合の所に置き直す
   let lastW = document.documentElement.clientWidth;
@@ -789,7 +835,7 @@ const MENU = [
     const w = document.documentElement.clientWidth,
       fx = dial.x / W,
       fy = dial.y / H;
-    if (w !== lastW && state === "open") close(1);
+    if (w !== lastW) close(1);
     lastW = w;
     measure();
     if (moved) {
@@ -803,7 +849,9 @@ const MENU = [
     if (!s || !s.link) return;
     if (/^https?:/.test(s.m.href)) window.open(s.m.href, "_blank", "noopener");
     else {
-      location.href = s.m.href;
+      // 息吹から紙へ、同じ場面を渡す（index.html の turnTo）
+      if (typeof turnTo === "function" && page(s.m.href) === "works.html" && here !== "works.html") turnTo(s.m.href);
+      else location.href = s.m.href;
       if (page(s.m.href) === here) close(360);
     }
   }
@@ -826,36 +874,30 @@ const MENU = [
   }
   // 跡：背景のヘリックスと同じ巻き方・色の 2 本のより線（RATE が 0 なら 1 本に重なる）と、背景と同じ横木。
   // 巻きの位相も背景と同じく経度で回る。濃さは AMP で、ガタつきは NOISE で背景と一緒に変わる。
-  // 流れ星が通ったそばから FADE ほどで薄れて消え、項目が並ぶ区間（茎。両端は 24px で細る）だけが STEM の濃さで残る。
-  // 撃ち直すか戻すと、前の茎も STEM_OUT で消える。画面の外からダイヤルをくぐるまでの区間は色を持たない（彩度 0）。
+  // 星が通ったばかりの所は濃く、時間とともに淡い線になって残る。
+  // 画面の外からダイヤルをくぐるまでの区間は色を持たない（彩度 0）。
   // 後ろと一緒に反転するので、色は反転していない時の値で書く
   function drawTrails(now, gl, bv) {
     tx2.clearRect(0, 0, W, H);
-    const hold = (t) => (t.old == null ? 1 : Math.max(0, Math.min(1, 1 - (now - t.old) / STEM_OUT)));
-    trails = trails.filter((t) => flying(t, now) || hold(t) > 0 || now - (t.end != null ? t.tEnd : t.t0 + t.dur) < FADE * 6);
     const amp = bv.hAmp * 0.05,
       twist = bv.hTurns > 0.01,
       gap = (H * 1.2) / bv.rc,
       kA = bv.bA / 0.42;
     tx2.setLineDash(bv.neg ? [6, 4] : []);
     trails.forEach((tr) => {
-      const hi = headAt(tr, now);
+      const hi = Math.floor(headAt(tr, now));
       if (hi < 1) return;
       const { proj } = projector(tr, gl),
-        h = hold(tr),
-        N1 = tr.pts.length - 1,
         C = [],
         A = [],
         G = []; // ダイヤルを抜けた後か（色を持つか）
-      for (let i = 0; i <= hi; i += 2) {
-        const s = tr.cum[i],
-          tp = tr.t0 + (tr.dur * i) / N1, // 流れ星がここを通った時刻
-          stem = h * Math.max(0, 1 - Math.max(tr.sA - s, s - tr.sB, 0) / 24);
-        C.push([...proj(...tr.pts[i]), s]);
+      for (let i = 0; ; i = Math.min(i + 2, hi)) {
+        const age = Math.max(0, now - tr.t0 - tr.times[i]);
+        C.push([...proj(...tr.pts[i]), tr.cum[i]]);
+        A.push(Math.min(0.5, Math.max(TRAIL_REST, 0.24 * Math.exp(-age / TRAIL_FADE)) * kA));
         G.push(i >= tr.nIn);
-        A.push(Math.min(0.5, Math.max(0.24 * Math.exp(-Math.max(0, now - tp) / FADE), STEM * stem) * kA));
+        if (i === hi) break;
       }
-      if (C.length < 2 || A.every((a) => a < 0.004)) return;
       // 各点で跡に直交する向きへ、より線を振る
       const N = C.map((p, i) => {
         const p0 = C[Math.max(0, i - 1)],
@@ -868,36 +910,33 @@ const MENU = [
         return [C[i][0] + N[i][0] * o + bv.nj(), C[i][1] + N[i][1] * o + bv.nj()];
       };
       const S = [0, Math.PI].map((off) => C.map((_, i) => at(i, off)));
-      // 濃さと色の有無が点ごとに変わるので、それが同じ区間ごとにまとめて引く
+      // 色と濃さが同じ区間をまとめ、区間の境は同じ点でつなぐ。
       for (let s = 0; s < 2; s++) {
         tx2.lineWidth = 1.3 + s * 0.2;
-        let q = 0;
+        let previous = -1;
         for (let i = 1; i < C.length; i++) {
-          const b = Math.round(((A[i - 1] + A[i]) / 2) * (s ? 0.7 : 1) * 60),
-            key = b && b * 2 + G[i];
-          if (key !== q) {
-            if (q) tx2.stroke();
-            q = key;
-            if (b) {
-              tx2.beginPath();
-              tx2.moveTo(...S[s][i - 1]);
-              tx2.strokeStyle = `hsla(${bv.hue + s * 15},${G[i] ? 18 : 0}%,72%,${(b / 60).toFixed(3)})`;
-            }
+          const level = Math.round((A[i - 1] + A[i]) / 2 * (s ? 0.7 : 1) * 60),
+            key = level * 2 + Number(G[i]);
+          if (key !== previous) {
+            if (previous >= 0) tx2.stroke();
+            previous = key;
+            tx2.beginPath();
+            tx2.moveTo(...S[s][i - 1]);
+            tx2.strokeStyle = `hsla(${bv.hue + s * 15},${G[i] ? 18 : 0}%,72%,${level / 60})`;
           }
-          if (b) tx2.lineTo(...S[s][i]);
+          tx2.lineTo(...S[s][i]);
         }
-        if (q) tx2.stroke();
+        tx2.stroke();
       }
       if (!twist) return;
       tx2.lineWidth = 0.7;
       for (let i = 0, next = gap / 2; i < C.length; i++) {
         if (C[i][3] < next) continue;
         next += gap;
-        if (A[i] < 0.004) continue;
         tx2.beginPath();
         tx2.moveTo(...S[0][i]);
         tx2.lineTo(...S[1][i]);
-        tx2.strokeStyle = `hsla(${bv.hue + 10},${G[i] ? 12 : 0}%,76%,${(A[i] * 0.55).toFixed(3)})`;
+        tx2.strokeStyle = `hsla(${bv.hue + 10},${G[i] ? 12 : 0}%,76%,${A[i] * 0.55})`;
         tx2.stroke();
       }
     });
@@ -918,10 +957,12 @@ const MENU = [
       if (hi < 1) return;
       const { proj } = projector(tr, gl),
         h0 = Math.floor(hi),
-        head = tr.cum[h0],
+        f = hi - h0, h1 = Math.min(tr.pts.length - 1, h0 + 1),
+        head = tr.cum[h0] + (tr.cum[h1] - tr.cum[h0]) * f,
         tail = L * 0.4;
-      let prev = proj(...tr.pts[h0]);
-      for (let i = h0 - 1; i >= 0; i--) {
+      const headPoint = tr.pts[h0].map((v, j) => v + (tr.pts[h1][j] - v) * f);
+      let prev = proj(...headPoint);
+      for (let i = h0; i >= 0; i--) {
         const u = (head - tr.cum[i]) / tail;
         if (u > 1) break;
         const p = proj(...tr.pts[i]);
@@ -933,8 +974,8 @@ const MENU = [
         cx2.stroke();
         prev = p;
       }
-      const [hx, hy] = proj(...tr.pts[h0]),
-        kh = tint(tr, h0);
+      const [hx, hy] = proj(...headPoint),
+        kh = tint(tr, h0) + (tint(tr, h1) - tint(tr, h0)) * f;
       cx2.beginPath();
       cx2.arc(hx, hy, 6, 0, TAU);
       cx2.fillStyle = starCol(gl.hue, kh, 0.22);
@@ -948,38 +989,28 @@ const MENU = [
   // 項目の見た目を、跡の上の場所 pos から出す。
   // 跡の上の点から枝が出る。枝は跡の進む向きに沿って生え、撃った時に決めた側（pos.side）へしなって、文字の下線になる。
   // 枝の長さは球と同じ呼吸でわずかに伸び縮みし、戻すときは根元へ縮む。
-  // 文字は水平に置き、パースは index.html のパネルと同じ式で付ける。文字の位置を、メニュー用の球（画面の対角より一回り大きい）の上の点と見て、
-  // その法線へ向けて傾ける。中心の文字は正面を向き、外ほど縁へ寝る。
-  // ただし寝かせる角度は法線の角度の TILT 倍に抑える（隅でも 20° くらい）。パネルと同じだけ寝かせると、画面の端の文字が細く小さく見えて読みにくい。
-  // 奥行き dm で薄く・ぼかすのはパネルと同じ。小さくするのは 6% まで（端の文字も小さくしすぎない）。
-  // 回す順だけはパネルと逆（X→Y）。パネルの順（Y→X）だと斜めの位置で縦画が経線に沿って倒れ、斜体に見える。逆なら縦画は立ったまま、行が傾く
-  const TILT = 0.4;
+  // 文字の傾きは撃ったときの輪の面から決める。読みやすい大きさと輪郭を保つ。
   function placeAt(it, pos, gl, kc) {
-    const { k, proj } = projector(pos.tr, gl),
-      RS = Math.hypot(W, H) / 2 / 0.8,
+    const { proj } = projector(pos.tr, gl),
       nx = -pos.ty * pos.side,
       ny = pos.tx * pos.side,
-      ll = (BR * it.vr.len + gl.breath * 0.4 + Math.max(0, ny) * it.h * it.size) * (1 - kc * 0.6),
+      ll = (BR * (pos.branchLength ?? it.vr.len) + gl.breath * 0.4 + Math.max(0, ny) * it.h * it.size) * (1 - kc * 0.6),
       ax = pos.x + nx * ll,
       ay = pos.y + ny * ll,
       B = proj(pos.x, pos.y),
       T = proj(pos.x + pos.tx * 6, pos.y + pos.ty * 6),
       S = proj(ax, ay),
       tl = Math.hypot(T[0] - B[0], T[1] - B[1]) || 1,
-      wx = (ax * k) / RS,
-      wy = (-ay * k) / RS,
-      [qx, qy, qz] = [wx, wy, Math.sqrt(Math.max(0, 1 - wx * wx - wy * wy))],
-      dm = (qz + 1) / 2,
-      sc = (0.94 + dm * 0.06) * S[2],
-      fs = it.size * sc,
-      w = it.w * fs,
-      h = it.h * fs;
+      { angle, rX, rY, shade } = pos.pose,
+      w = it.w * it.size,
+      h = it.h * it.size;
     // 文字は下端を枝の先にそろえ、anc の向きへ伸ばす（画面の端では内へ押す）
     let lx = S[0],
       ly = S[1] - h / 2;
-    if (pos.anc === "start") lx = Math.max(10, Math.min(lx, W - 10 - w));
-    else lx = Math.min(W - 10, Math.max(lx, 10 + w));
-    ly = Math.max(10 + h / 2, Math.min(H - 10 - h / 2, ly));
+    const b = labelBox(lx, ly, w, h, pos.anc, angle),
+      bottom = H - (strip ? strip.offsetHeight : 0) - 16;
+    lx += Math.max(0, 10 - b[0]) - Math.max(0, b[2] - W + 10);
+    ly += Math.max(0, 10 - b[1]) - Math.max(0, b[3] - bottom);
     return {
       bx: B[0],
       by: B[1],
@@ -988,10 +1019,10 @@ const MENU = [
       lx,
       ly,
       tx: pos.anc === "start" ? 0 : -100, // 文字の端（枝が入る側）を軸に置く
-      rX: (-Math.asin(Math.max(-1, Math.min(1, qy))) * 180 * TILT) / Math.PI,
-      rY: (Math.atan2(qx, qz) * 180 * TILT) / Math.PI,
-      sc: fs / it.size,
-      dm,
+      rZ: angle * 180 / Math.PI,
+      rX,
+      rY,
+      shade,
     };
   }
   // 枝の形：点列 P（先頭から n1 番までが枝、その先が下線）を、太さの変わる線の輪郭にする。
@@ -1061,20 +1092,19 @@ const MENU = [
       it.disp = v;
       it.g.style.opacity = it.el.style.opacity = kc ? String(1 - kc) : "";
       // 選んでいる項目は一回り大きく。流れ星が飛んでいる間（反転中）は枝が太くなる
-      it.hk += ((it.hot ? 1.08 : 1) - it.hk) * 0.25;
-      it.fk += ((invOn ? 1 : 0) - it.fk) * 0.12;
-      const s = v.sc * it.hk;
-      it.el.style.transform = `translate3d(${v.lx.toFixed(1)}px,${v.ly.toFixed(1)}px,0) rotateX(${v.rX.toFixed(2)}deg) rotateY(${v.rY.toFixed(2)}deg) scale(${s.toFixed(3)}) translate(${v.tx.toFixed(1)}%,-50%)`;
-      const op = (0.16 + v.dm * 0.84).toFixed(3);
-      it.span.style.opacity = it.br.style.opacity = op;
-      it.span.style.filter = `blur(${((1 - v.dm) * 1.4).toFixed(2)}px)`;
+      it.hk += ((it.hot ? 1.08 : 1) - it.hk) * (1 - Math.pow(0.75, frameStep));
+      it.fk += ((invOn ? 1 : 0) - it.fk) * (1 - Math.pow(0.88, frameStep));
+      const s = it.hk;
+      it.el.style.transform = `translate3d(${v.lx.toFixed(1)}px,${v.ly.toFixed(1)}px,0) rotateZ(${v.rZ.toFixed(2)}deg) rotateY(${v.rY.toFixed(2)}deg) rotateX(${v.rX.toFixed(2)}deg) scale(${s.toFixed(3)}) translate(${v.tx.toFixed(1)}%,-50%)`;
+      it.br.style.opacity = v.shade.toFixed(3);
       // 下線の両端：文字の下端を、文字と同じ変形とパースで画面へ写す。内側（枝が入る側）は文字の軸の端で、外側は少し先まで伸ばす
       const ew = it.w * it.size,
         eh = it.h * it.size,
         m = new DOMMatrix()
           .translate(v.lx, v.ly)
-          .rotateAxisAngle(1, 0, 0, v.rX)
+          .rotateAxisAngle(0, 0, 1, v.rZ)
           .rotateAxisAngle(0, 1, 0, v.rY)
+          .rotateAxisAngle(1, 0, 0, v.rX)
           .scale(s)
           .translate((v.tx / 100) * ew, -eh / 2),
         pr = (x, y) => {
@@ -1124,13 +1154,15 @@ const MENU = [
     if (kc >= 1) finishClose();
   }
 
-  let invOn = false;
+  let invOn = false, previousFrame = 0, frameStep = 1;
   function frame(now) {
+    frameStep = previousFrame ? Math.max(0.1, Math.min(3, (now - previousFrame) / (1000 / 60))) : 1;
+    previousFrame = now;
     const gl = globe(now),
       bv = bgVars(gl);
     root.style.setProperty("--orb-hue", gl.hue.toFixed(1));
     // 明暗の反転は、流れ星が飛んでいる間だけ（撃つたびに入り、最後の流れ星が画面の外へ抜けると戻る）
-    const inv = state === "open" && !reduce && trails.some((tr) => flying(tr, now, 200));
+    const inv = !reduce && trails.some((tr) => flying(tr, now, 200));
     if (inv !== invOn) document.documentElement.classList.toggle("orb-inv", (invOn = inv));
     // ダイヤルはリングが大きくなると押される（読み込み直後の球が飛び出す演出の間は、まだ押さない）
     if (!drag && Math.abs(gl.breath) < 20) clampDial(gl);
@@ -1144,7 +1176,11 @@ const MENU = [
       if (all.some((it) => it.over > 0 || it.el === document.activeElement)) menuT = now;
       if (now - menuT > STAY) close(1200);
     }
-    requestAnimationFrame(frame);
+    if (!window.IVKY_SCENE_STATIC) requestAnimationFrame(frame);
   }
-  requestAnimationFrame(frame);
+  if (window.IVKY_SCENE_STATIC) {
+    frame(performance.now());
+    document.fonts.ready.then(() => frame(performance.now()));
+  }
+  else requestAnimationFrame(frame);
 })();

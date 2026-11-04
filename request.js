@@ -21,7 +21,7 @@ const PRICE = [
 ];
 
 const CONTACT = {
-  lead: "ご依頼・ご相談はXのDM等へ！\n規模や予算は問いません。\n納品後、銀行振込またはPayPayにてお支払い。",
+  lead: "ご依頼・ご相談はXのDM等へ！\n規模や予算は問いません。\n納品後、銀行振込またはPayPalにてお支払い。",
   dmUrl: "https://x.com/t_t_r_n_",
   dmLabel: "X でDMを送る →",
   discord: "n00l3",
@@ -32,7 +32,7 @@ const CONTACT = {
     { label: "納期目安", ph: "〇月〇日ごろまで" },
     { label: "素材・仕様", ph: "音源あり・イラスト手配中など" },
     { label: "クレジット", ph: "希望の名義、または不要" },
-    { label: "支払い方法", ph: "銀行振込 / PayPay" },
+    { label: "支払い方法", ph: "銀行振込 / PayPal" },
     { label: "自由記述", ph: "イメージ・参考URLなど" },
   ],
 };

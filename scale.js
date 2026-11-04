@@ -8,8 +8,10 @@
 // 見出しを押すと、その部の頭へ滑って移ります。部は .part[data-label] から拾います（見た目は list.css）。
 
 (() => {
-  const parts = [...document.querySelectorAll(".part[data-label]")];
-  if (!parts.length) return;
+  const parts = [...document.querySelectorAll(".part[data-label]")],
+    paper = document.getElementById("paper"),
+    zoneTop = document.getElementById("zone-top");
+  if (!parts.length || !paper) return;
   const nav = document.createElement("nav");
   nav.className = "scale";
   nav.setAttribute("aria-label", "この紙の見出し");
@@ -22,24 +24,27 @@
     ctx = cv.getContext("2d");
 
   // 部の頭が上の帯の下（scroll-margin-top）に来るときのスクロール量を、紙を送れる長さに対する割合で目盛に写す。
+  // 測るのは紙（#paper）の中だけ。上と下の転換の区間（turn.js）は目盛に入れない。部の位置は紙の中の位置（offsetTop）で取る。
   // 写す長さ（span）は、最後の見出しの下端が目盛の下端にちょうど来る長さ（目盛の高さは超えない）。どの見出しも部の頭の位置に乗り、
   // どの部でも、頭まで送ると針が見出しの真上に来る。最後の部では、針は見出しの文字の横を下りていく。
   // 前の見出しに重なるなら下へずらし、それで下端からはみ出すなら上へ押し戻す
   const GAP = 8, // 見出しどうしの最小の間（px）
     PAD = 8; // 見出しの文字と、いちばん近い刻みの間（px）
   let max = 1,
+    Z = 0, // 上の区間の長さ
     h = 1,
     span = 1,
     dpr = 1,
     texts = [], // 見出しの文字がある所 [上端, 下端]
     ticks = []; // 刻みの位置
   function measure() {
-    max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    Z = zoneTop ? zoneTop.offsetHeight : 0;
+    max = Math.max(1, paper.offsetHeight - innerHeight);
     h = nav.clientHeight;
     dpr = devicePixelRatio || 1;
     const len = heads.map((a) => a.offsetHeight);
     const rs = parts.map((p) => {
-      const s = p.getBoundingClientRect().top + scrollY - parseFloat(getComputedStyle(p).scrollMarginTop || 0);
+      const s = p.offsetTop - parseFloat(getComputedStyle(p).scrollMarginTop || 0);
       return Math.min(max, Math.max(0, s)) / max;
     });
     const rl = rs[rs.length - 1];
@@ -73,13 +78,16 @@
     cv.height = h * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
+  // 紙のどこまで送ったか（区間の中では、紙の端で止まる）
+  const pos = () => Math.min(max, Math.max(0, scrollY - Z));
   // 今読んでいる部は、頭が画面の上 3 分の 1 より上に来ている最後の部。紙の下端まで来たら最後の部
   function update() {
+    const y = pos();
     let cur = 0;
     parts.forEach((p, i) => {
-      if (p.getBoundingClientRect().top < innerHeight / 3) cur = i;
+      if (p.offsetTop - y < innerHeight / 3) cur = i;
     });
-    if (scrollY >= max - 2) cur = parts.length - 1;
+    if (y >= max - 2) cur = parts.length - 1;
     heads.forEach((a, i) => a.classList.toggle("is-here", i === cur));
   }
 
@@ -94,15 +102,26 @@
     STEP = 6,
     CLEAR = 8; // 針が見出しの文字を避けるときの、軸から片側の空き（px）
   const still = matchMedia("(prefers-reduced-motion: reduce)");
+  heads[0].addEventListener("click", (e) => {
+    if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    if (location.hash !== heads[0].hash) history.pushState(null, "", heads[0].hash);
+    scrollTo({ top: Z, behavior: still.matches ? "instant" : "smooth" });
+  });
   let vel = 0,
-    lastY = scrollY,
+    lastY = -1,
     prev = performance.now();
   function draw(now) {
+    if (document.documentElement.classList.contains("turning")) {
+      prev = now;
+      requestAnimationFrame(draw);
+      return;
+    }
     vel *= Math.exp(-(now - prev) / 600);
     prev = now;
     const breath = still.matches ? 0.5 : 0.5 + 0.5 * Math.sin((now / 1000) * 0.672),
       v = still.matches ? 0 : vel,
-      my = Math.round(Math.min(1, scrollY / max) * span * dpr) / dpr,
+      my = Math.round((pos() / max) * span * dpr) / dpr,
       sigma = 16 + 10 * breath + 48 * v,
       amp = 0.55 + 0.2 * breath + 0.6 * v;
     ctx.clearRect(0, 0, W, h);
@@ -127,8 +146,10 @@
   addEventListener(
     "scroll",
     () => {
-      vel = Math.min(1, vel + Math.abs(scrollY - lastY) / 500);
-      lastY = scrollY;
+      // 開いた直後に紙の位置へ飛んだ分は、勢いに数えない
+      const y = pos();
+      if (lastY >= 0) vel = Math.min(1, vel + Math.abs(y - lastY) / 500);
+      lastY = y;
       update();
     },
     { passive: true }

@@ -20,60 +20,83 @@
   <meta name="twitter:title" content="のおる — works" />
   <meta name="twitter:description" content="映像制作を軸に、幅広く活動中のクリエイター「のおる」の実績一覧・自主制作と、依頼・相談の案内です。" />
   <meta name="twitter:image" content="https://nolqe.github.io/Ivky/images/ivky.png" />
-  <link rel="stylesheet" href="./list.css" />
+  <link rel="stylesheet" href="./list.css?v=paper-clean-live" />
+  <!-- turn.js が開く位置と最初の絵を決めるまで、描き始めない（息吹から移るときに、何もない一コマを挟まない） -->
+  <link rel="expect" href="#turned" blocking="render" />
+  <!-- 息吹から回ってきたときは、紙の下にある絵を同じ値・同じ大きさから描き始める -->
+  <script>
+    history.scrollRestoration = "manual";
+    try {
+      const t = JSON.parse(sessionStorage.getItem("ivky-turn") || "null");
+      if (t && t.from === "ibuki" && Date.now() - t.at < 8000) document.documentElement.classList.add("turn-in");
+    } catch (e) {}
+  </script>
 </head>
 
 <body>
-  <header class="top">
-    <a href="./" class="back">← 息吹</a>
-  </header>
+  <!-- 紙の上下に送れる区間を続ける。紙が息吹の奥から手前へ回り、読める紙面へつながる（turn.js） -->
+  <div class="track">
+    <div class="zone" id="zone-top"></div>
+    <div id="paper-slot">
+      <div class="paper-scene">
+        <div class="paper-front">
+          <div id="paper">
+            <a class="paper-return paper-return--top" href="./" data-return="-1">⇧息吹</a>
+            <!-- 実績一覧・自主制作・依頼・相談は、一枚の紙に上から続く。右の目盛（scale.js）は .part[data-label] から見出しを拾う -->
+            <main class="wrap">
+              <section class="part" id="works" data-label="実績一覧">
+                <div class="sec-head">Works</div>
+                <h1>実績一覧</h1>
+                <div class="count" id="works-count"></div>
+                <ol class="works" id="works-list"></ol>
+              </section>
 
-  <!-- 実績一覧・自主制作・依頼・相談は、一枚の紙に上から続く。右の目盛（scale.js）は .part[data-label] から見出しを拾う -->
-  <main class="wrap">
-    <section class="part" id="works" data-label="実績一覧">
-      <div class="sec-head">Works</div>
-      <h1>実績一覧</h1>
-      <div class="count" id="works-count"></div>
-      <ol class="works" id="works-list"></ol>
-    </section>
+              <section class="part" id="personal" data-label="自主制作">
+                <div class="sec-head">Personal</div>
+                <h2 class="title">自主制作</h2>
+                <div class="count" id="personal-count"></div>
+                <ol class="works" id="personal-list"></ol>
+              </section>
 
-    <section class="part" id="personal" data-label="自主制作">
-      <div class="sec-head">Personal</div>
-      <h2 class="title">自主制作</h2>
-      <div class="count" id="personal-count"></div>
-      <ol class="works" id="personal-list"></ol>
-    </section>
+              <section class="part" id="request" data-label="依頼・相談">
+                <div class="sec-head">Request</div>
+                <h2 class="title">依頼・相談</h2>
+                <p class="lead" id="lead"></p>
 
-    <section class="part" id="request" data-label="依頼・相談">
-      <div class="sec-head">Request</div>
-      <h2 class="title">依頼・相談</h2>
-      <p class="lead" id="lead"></p>
+                <section class="sec">
+                  <div class="sec-head">料金目安</div>
+                  <div id="price"></div>
+                </section>
 
-      <section class="sec">
-        <div class="sec-head">料金目安</div>
-        <div id="price"></div>
-      </section>
+                <section class="sec">
+                  <div class="sec-head">連絡先</div>
+                  <div class="ways" id="ways"></div>
+                </section>
 
-      <section class="sec">
-        <div class="sec-head">連絡先</div>
-        <div class="ways" id="ways"></div>
-      </section>
-
-      <section class="sec">
-        <div class="sec-head">依頼テンプレート（任意）</div>
-        <div class="tpl">
-          <div class="tpl-body" id="tpl"></div>
-          <button class="cbtn" id="copy" type="button">コピーする ↗</button>
+                <section class="sec">
+                  <div class="sec-head">依頼テンプレート（任意）</div>
+                  <div class="tpl">
+                    <div class="tpl-body" id="tpl"></div>
+                    <button class="cbtn" id="copy" type="button">コピーする ↗</button>
+                  </div>
+                </section>
+              </section>
+            </main>
+            <a class="paper-return paper-return--bottom" href="./" data-return="1">⇩息吹</a>
+          </div>
         </div>
-      </section>
-    </section>
+      </div>
+    </div>
+    <div class="zone" id="zone-bottom"></div>
+  </div>
 
-    <div class="foot"><a href="./" class="back">← 息吹 に戻る</a></div>
-  </main>
+  <!-- 紙の下にある息吹と、紙面を横切る光 -->
+  <canvas class="ibuki" aria-hidden="true"></canvas>
+  <div class="flare" aria-hidden="true"><i></i><i></i></div>
 
   <script src="./works.js"></script>
   <script src="./personal.js"></script>
-  <script src="./request.js"></script>
+  <script src="./request.js?v=paypal"></script>
   <script src="./list.js"></script>
   <script>
     renderList(WORKS, "works");
@@ -107,7 +130,11 @@
       });
     });
   </script>
-  <script src="./scale.js"></script>
+  <script src="./scale.js?v=return-ready-v3"></script>
+  <script src="./ibuki-bg.js?v=live-palette"></script>
+  <script src="./paper-patina.js?v=paper-clean-live"></script>
+  <script src="./paper-surface.js?v=turn-tilt"></script>
+  <script src="./turn.js?v=paper-clean-live"></script>
 </body>
 
 </html>

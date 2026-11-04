@@ -9,21 +9,34 @@
 }
 
 :root {
+  --paper-hue: 0;
+  --paper-light-hue: var(--paper-hue);
   --bg: #f4f4f2;
   --bg2: #eeeee9;
-  --border: #d4d4d0;
-  --border2: #e2e2dd;
-  --text: #181816;
-  --text2: #6a6a65;
-  --text3: #b0b0aa;
-  --text4: #c8c8c2;
+  --border: hsl(calc(var(--paper-hue) + 15), 12%, 80%);
+  --border2: hsl(calc(var(--paper-hue) + 15), 12%, 87%);
+  --text: hsl(calc(var(--paper-hue) + 15), 18%, 12%);
+  --text2: hsl(calc(var(--paper-hue) + 15), 12%, 39%);
+  --text3: hsl(calc(var(--paper-hue) + 15), 14%, 56%);
+  --text4: hsl(calc(var(--paper-hue) + 15), 12%, 69%);
   --serif: "Cormorant Garamond", serif;
   --mono: "DM Mono", monospace;
+  --paper-stock: hsl(var(--paper-hue), 10%, 98%);
+  --paper-back: hsl(var(--paper-hue), 8%, 96%);
+  --paper-shadow: hsl(calc(var(--paper-hue) + 15), 15%, 20%);
+  --paper-fiber: url("./images/paper-fiber.svg?v=paper-clean");
 }
 
-html,
-body {
-  background: var(--bg);
+/* 端で引っ張って更新する動き・跳ね返りは止める（端の先は転換の区間で、そこを送ると息吹へ回る） */
+html {
+  background: var(--bg2);
+  overflow-x: clip;
+  overscroll-behavior-y: none;
+}
+
+/* 息吹（index.html）との行き来で、ページが替わる一瞬を重ねてつなぐ */
+@view-transition {
+  navigation: auto;
 }
 
 body {
@@ -31,57 +44,316 @@ body {
   color: var(--text);
   font-size: 15px;
   min-height: 100dvh;
+  background: transparent;
   /* 文字は選べない（index.html と同じ） */
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
 
+/* 粒は一定の間隔で位置を変える。紙が巻かれて息吹へ戻るほど薄れる。 */
 body::before {
   content: "";
   position: fixed;
-  inset: 0;
+  inset: -128px;
   z-index: 999;
   pointer-events: none;
-  opacity: 0.028;
+  opacity: calc(var(--grain, 0.012) * (1 - var(--zp, 0)));
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 128px 128px;
+  animation: grain 7.2s ease-in-out infinite alternate;
 }
 
-/* top bar */
-.top {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  height: 56px;
-  padding: 0 20px;
+@keyframes grain {
+  from { transform: translate(-0.8px, 0.4px); }
+  to { transform: translate(0.8px, -0.4px); }
+}
+
+/* 紙を一枚だけ置く。端では一画面ぶんを切り出し、連続した曲面に変形する。 */
+.zone {
+  height: 100vh;
+}
+.track {
+  overflow: clip;
+}
+
+#paper-slot {
+  position: relative;
+  width: min(calc(100% - 24px), 840px);
+  margin-inline: auto;
+  z-index: 1;
+}
+
+.paper-scene,
+.paper-front {
+  position: relative;
+}
+
+#paper {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-height: 100vh;
+  background: var(--paper-fiber) 0 0 / 256px 256px repeat var(--paper-stock);
+  background-blend-mode: multiply;
+  box-shadow: 0.6px 0 rgba(255,255,255,0.92), -0.7px 0 rgba(75,86,93,0.16), 0 3px 12px rgba(32,41,46,0.065);
+}
+
+#paper > .wrap {
+  position: relative;
+  z-index: 1;
+}
+
+/* インクは紙の色と重なる。画像・動画は独立した色のまま。 */
+.winfo, .part > .sec-head, .part > h1, .part > h2, .part > .count, .part > .lead, .part > .sec {
+  mix-blend-mode: multiply;
+  text-shadow: 0.22px 0.16px hsla(var(--paper-hue),24%,32%,0.13), -0.18px 0.2px hsla(calc(var(--paper-hue) + 15),22%,36%,0.11);
+}
+.paper-patina {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  z-index: 3;
+  pointer-events: none;
+  filter: hue-rotate(calc(var(--paper-hue) * 1deg));
+}
+.paper-patina--ink { mix-blend-mode: multiply; }
+.paper-patina--sheen { opacity: var(--patina-sheen, 0.24); }
+
+/* 戻り先の案内は、紙そのものの上端・下端の中央に置く。 */
+.paper-return {
+  position: absolute;
+  left: 50%;
+  z-index: 2;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: linear-gradient(to bottom, rgba(244, 244, 242, 0.96) 55%, rgba(244, 244, 242, 0) 100%);
-}
-
-.back {
-  font-family: var(--mono);
-  font-size: 10px;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  transform: translateX(-50%);
+  font: 300 12px/1.4 var(--mono);
+  letter-spacing: 0.08em;
   color: var(--text2);
-  letter-spacing: 0.1em;
   text-decoration: none;
-  transition: color 0.2s;
+  white-space: nowrap;
 }
 
-.back:hover {
-  color: var(--text);
+.paper-return--top { top: 18px; }
+.paper-return--bottom { bottom: 18px; }
+.paper-return:hover,
+.paper-return:focus-visible { color: var(--text); }
+.paper-return:focus-visible { outline: 1px solid var(--border); outline-offset: -5px; }
+
+/* 同じ息吹の景色を保持する。スクロールのたびに輪の大きさを変えない。 */
+.ibuki {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100%;
+  z-index: 0;
+  opacity: calc(0.72 + var(--zp, 0) * 0.28);
+  pointer-events: none;
+}
+
+
+/* 前景と紙は同じ透視投影の中にある。途中でz-indexを切り替えない。 */
+.turn-stage {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 4;
+  visibility: hidden;
+  pointer-events: none;
+  perspective-origin: 50% 50%;
+}
+.turn-space {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.ibuki-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+}
+.paper-mesh {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+.paper-strip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.paper-strip-front,
+.paper-strip-back {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background-color: var(--paper-stock);
+  background-image: var(--paper-fiber);
+  background-size: 256px 256px;
+  background-position: var(--fiber-x) var(--fiber-y);
+  background-blend-mode: multiply;
+  opacity: var(--paper-visibility, 1);
+}
+.paper-strip-front {
+  transform: translateZ(0.12px);
+}
+.paper-strip :is(.paper-strip-front, .paper-strip-back) {
+  box-shadow: inset 0.7px 0 rgba(255,255,255,0.65), inset -0.7px 0 rgba(75,86,93,0.1);
+}
+.paper-front-ink {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: var(--surface-detail, 1);
+  will-change: opacity;
+}
+.paper-strip-front::after,
+.paper-strip-back::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--paper-shadow);
+  opacity: var(--shade, 0);
+  will-change: opacity;
+}
+.paper-strip-back {
+  transform: rotateX(180deg) translateZ(0.12px);
+  background-color: var(--paper-back);
+}
+.paper-back-ink {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform: scaleY(-1);
+  opacity: calc(0.055 * var(--surface-detail, 1));
+  will-change: opacity;
+}
+.paper-video-still {
+  width: 100%;
+  height: 100%;
+  background: center / cover no-repeat;
+}
+.paper-snapshot-rule { background: var(--border2); }
+html.turning .paper-scene {
+  position: fixed;
+  top: 0;
+  left: var(--paper-x);
+  width: var(--paper-w);
+  height: var(--scene-h);
+  visibility: hidden;
+  pointer-events: none;
+}
+html.turning .paper-front { height: 100%; }
+html.turning #paper { top: var(--paper-offset); }
+@media (prefers-reduced-motion: reduce) {
+  html.turning .paper-scene { visibility: visible; }
+}
+
+html.turn-in .scale { visibility: hidden; }
+/* 息吹には無いスクロールバーを、転換の絵へ先に割り込ませない。 */
+html.turning { scrollbar-width: none; }
+html.turning::-webkit-scrollbar { display: none; }
+html.turning .scale {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+html.turning body::before {
+  animation-play-state: paused;
+}
+
+html.turning .flare { opacity: clamp(0, calc(0.26 - var(--zp, 0) * 3.25), 0.26); }
+
+/* ── 紙面を横切る光 ──
+   斜めの反射がゆっくりずれる。紙面を回すと薄れ、固定された光が息吹の上に残らない。 */
+.flare {
+  position: fixed;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: min(calc(100% - 24px), 840px);
+  z-index: 998;
+  pointer-events: none;
+  overflow: hidden;
+  transform: translateX(-50%);
+  opacity: calc(0.26 * (1 - var(--zp, 0)) * (1 - var(--zp, 0)) * (1 - var(--zp, 0)));
+}
+
+html.turn-in .flare {
+  opacity: 0;
+}
+
+.flare i {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.flare i:nth-child(1) {
+  left: -38%;
+  top: 14%;
+  width: 176%;
+  height: 12%;
+  background: linear-gradient(112deg, transparent 10%, hsla(var(--paper-light-hue),28%,57%,0.025) 34%, hsla(var(--paper-light-hue),45%,94%,0.25) 48%, hsla(var(--paper-light-hue),35%,97%,0.34) 50%, hsla(var(--paper-light-hue),32%,64%,0.08) 53%, transparent 76%);
+  filter: blur(9px);
+  transform: rotate(-13deg);
+  animation: rake-a 34s cubic-bezier(0.42,0,0.26,1) infinite alternate;
+}
+
+.flare i:nth-child(2) {
+  left: -24%;
+  top: 62%;
+  width: 150%;
+  height: 5%;
+  background: linear-gradient(108deg, transparent 18%, hsla(var(--paper-light-hue),35%,96%,0.11) 43%, hsla(var(--paper-light-hue),40%,95%,0.26) 49%, hsla(var(--paper-light-hue),20%,64%,0.045) 54%, transparent 78%);
+  filter: blur(3px);
+  transform: rotate(-13deg);
+  animation: rake-b 45s cubic-bezier(0.42,0,0.26,1) -17s infinite alternate;
+}
+
+@keyframes rake-a {
+  from { transform: translate(-6%, -7vh) rotate(-13deg) scaleX(0.96); }
+  to { transform: translate(7%, 9vh) rotate(-13deg) scaleX(1.04); }
+}
+
+@keyframes rake-b {
+  from { transform: translate(5%, 6vh) rotate(-13deg) scaleX(1.03); }
+  to { transform: translate(-7%, -4vh) rotate(-13deg) scaleX(0.97); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  .flare i {
+    animation: none;
+  }
+
 }
 
 /* list */
 .wrap {
   max-width: 600px;
   margin: 0 auto;
-  padding: 40px 16px 96px;
+  padding: 96px 16px;
 }
 
-/* 部（実績一覧・自主制作・依頼・相談）は間を空けて続く。見出しや目盛で移ると、部の頭は上の帯（.top）の下で止まる */
+/* 部（実績一覧・自主制作・依頼・相談）は一枚の中で続く。ページ内リンクは部の頭を上端から少し空けて止める */
 html {
   scroll-behavior: smooth;
 }
@@ -93,6 +365,7 @@ html {
 }
 
 .part {
+  position: relative;
   scroll-margin-top: 72px;
 }
 
@@ -540,12 +813,6 @@ a.way-v:hover {
   color: var(--text);
 }
 
-.foot {
-  margin-top: 56px;
-  border-top: 1px solid var(--border2);
-  padding-top: 28px;
-}
-
 /* ── 右の目盛（scale.js） ──
    紙の長さを写した縦の目盛。縦の線は引かず、左右対称の刻みだけを並べる（刻みと針は scale.js が描く）。
    見出しは縦書きで刻みの列の上に乗り、部の頭の位置から下へ伸びて、そのまま大きな区切りになる。
@@ -557,6 +824,7 @@ a.way-v:hover {
   right: 40px;
   width: 1px;
   z-index: 5;
+  transition: opacity 0.18s ease;
 }
 
 /* 刻みの軸が .scale の 1px の中に来るように置く（片側 12px） */

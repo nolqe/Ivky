@@ -882,7 +882,55 @@
       flex-shrink: 0;
       align-self: center;
     }
+
+    html.scene-embed, html.scene-embed body, .scene-embed #app { background: transparent; }
+    .scene-embed #bg { visibility: hidden; }
+    .scene-embed #app {
+      --text: color-mix(in srgb, #e7e7e9 calc(var(--scene-inversion, 0) * 100%), #181816);
+      --text2: color-mix(in srgb, #95959a calc(var(--scene-inversion, 0) * 100%), #6a6a65);
+      --text3: color-mix(in srgb, #4f4f55 calc(var(--scene-inversion, 0) * 100%), #b0b0aa);
+      --text4: color-mix(in srgb, #37373d calc(var(--scene-inversion, 0) * 100%), #c8c8c2);
+      --border: color-mix(in srgb, #2b2b2f calc(var(--scene-inversion, 0) * 100%), #d4d4d0);
+      --border2: color-mix(in srgb, #1d1d22 calc(var(--scene-inversion, 0) * 100%), #e2e2dd);
+    }
+    .scene-embed #connections, .scene-embed #ctrl-strip {
+      filter: invert(var(--scene-inversion, 0));
+    }
+    .scene-embed #ctrl-strip {
+      --text: #181816; --text2: #6a6a65; --text3: #b0b0aa; --text4: #c8c8c2;
+      --border: #d4d4d0; --border2: #e2e2dd;
+    }
+    .scene-embed h1 {
+      background: color-mix(in srgb, rgba(43,43,47,0.4) calc(var(--scene-inversion, 0) * 100%), rgba(212,212,208,0.4));
+    }
+
+    /* 紙へ移る時も、同じ息吹の場面を渡す。 */
+    @view-transition { navigation: auto; }
+    @keyframes paper-return-hold { from { opacity: 1; } to { opacity: 1; } }
+    html.returning-paper::view-transition-group(root) { animation: paper-return-hold 3s linear; }
+    html.returning-paper::view-transition-old(root) { animation: none; opacity: 1; }
+    html.returning-paper::view-transition-new(root) { animation: none; opacity: 0; mix-blend-mode: normal; }
   </style>
+  <!-- 背景とメニューを描き終えるまで、描き始めない（紙から移るときに、何もない一コマを挟まない） -->
+  <link rel="expect" href="#drawn" blocking="render" />
+  <script>
+    const sceneEmbed = new URLSearchParams(location.search).has("paper-scene");
+    let paperReturnTransition = null;
+    addEventListener("pagereveal", (e) => {
+      if (document.documentElement.classList.contains("returning-paper")) paperReturnTransition = e.viewTransition || null;
+    });
+    window.IVKY_SCENE_STATIC = sceneEmbed;
+    if (sceneEmbed) document.documentElement.classList.add("scene-embed");
+    if (sceneEmbed) document.documentElement.style.setProperty("--scene-inversion", new URLSearchParams(location.search).get("paper-inverted") === "1" ? "1" : "0");
+    // 紙の裏で見えていた場面を、そのまま引き継ぐ。
+    try {
+      const t = JSON.parse(sessionStorage.getItem("ivky-turn") || "null");
+      if (!sceneEmbed && t && t.from === "paper" && Date.now() - t.at < 8000) {
+        document.documentElement.classList.add("returning-paper");
+        sessionStorage.removeItem("ivky-turn");
+      }
+    } catch (e) {}
+  </script>
 </head>
 
 <body>
@@ -945,7 +993,8 @@
     </div>
   </div>
   <script src="./works.js"></script>
-  <script src="./request.js"></script>
+  <script src="./request.js?v=paypal"></script>
+  <script src="./ibuki-bg.js?v=live-palette"></script>
   <script>
     // ====== 配置の順番について ======
     // 要素は配列の「上から順番」に、以下の指定エリアへと配置されていきます。
@@ -1062,6 +1111,17 @@
       noise: 0,
     };
     let Q = [1, 0, 0, 0];
+    // 紙から回ってきたときは、紙の下にある背景を同じ状態で受け取る
+    const turnIn = document.documentElement.classList.contains("returning-paper");
+    let turnLook = null;
+    if (turnIn || sceneEmbed) {
+      try {
+        turnLook = JSON.parse(sessionStorage.getItem("ivky-look") || "null");
+        if (turnLook && turnLook.P) Object.assign(P, turnLook.P);
+        if (turnLook && Number.isFinite(turnLook.radius)) P.radius = turnLook.radius;
+        if (turnLook && Array.isArray(turnLook.Q) && turnLook.Q.length === 4) Q = turnLook.Q;
+      } catch (e) {}
+    }
     function qMul(a, b) {
       return [
         a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
@@ -1236,8 +1296,12 @@
       conX = conC.getContext("2d");
     function drawConnections(mat, r) {
       const dpr = devicePixelRatio || 1,
-        W = (conC.width = conC.offsetWidth * dpr),
-        H = (conC.height = conC.offsetHeight * dpr);
+        W = Math.round(conC.offsetWidth * dpr),
+        H = Math.round(conC.offsetHeight * dpr);
+      if (conC.width !== W || conC.height !== H) {
+        conC.width = W;
+        conC.height = H;
+      }
       conX.clearRect(0, 0, W, H);
       const cx = W / 2,
         cy = H / 2,
@@ -1269,6 +1333,13 @@
         });
       });
     }
+    // 紙へのリンクに、いまの息吹の場面を渡す（turnTo）
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest('a[href*="works.html"]');
+      if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      turnTo(a.getAttribute("href"));
+    });
     globe.addEventListener("click", (e) => {
       const b = e.target.closest(".cbtn[data-tpl]");
       if (!b) return;
@@ -1332,104 +1403,16 @@
     const bgC = document.getElementById("bg"),
       bx = bgC.getContext("2d");
     let hP = 0;
-    function hsl(h, s, l, a) {
-      return `hsla(${h},${s}%,${l}%,${a})`;
-    }
+    // 絵は ibuki-bg.js（works.html の紙が回った先の息吹の面と同じ式）
     function drawBg() {
       const dpr = devicePixelRatio || 1,
-        W = (bgC.width = bgC.offsetWidth * dpr),
-        H = (bgC.height = bgC.offsetHeight * dpr);
-      bx.clearRect(0, 0, W, H);
-      const cx = W / 2,
-        cy = H / 2,
-        mn = Math.min(W, H),
-        h = P.hue,
-        ns = P.noise,
-        nj = () => ns * (Math.random() - 0.5) * mn * 0.02;
-      const rN = P.radius / 520,
-        rateN = P.lfoRate,
-        ampN = P.lfoAmp;
-      const hAmp = mn * (0.12 + Math.min(Math.abs(rateN), 4) * 0.06),
-        hDir = rateN >= 0 ? 1 : -1;
-      const hTurns = Math.abs(rateN) * 1.2;
-      // persp→ring tilt angle: map persp(-300..8000) to ring angle(0.8..-0.2)
-      const pNorm = (P.perspective + 300) / (8000 + 300); // 0..1
-      const ringTiltBase = 0.8 - pNorm * 1.0; // ~0.8 at min persp, ~-0.2 at max
-      const ringR = mn * (0.15 + Math.min(Math.abs(rN), 2.5) * 0.1),
-        ringNeg = rN < 0;
-      const bA = 0.42 + Math.min(Math.abs(ampN), 2) * 0.2;
-      // glow
-      const gR = mn * (0.35 + Math.abs(rN) * 0.12);
-      const glow = bx.createRadialGradient(cx, cy, mn * 0.04, cx, cy, gR);
-      glow.addColorStop(0, hsl(h, 20, 92, 0));
-      glow.addColorStop(0.3, hsl(h, 30, 78, 0.22 + Math.abs(ampN) * 0.1));
-      glow.addColorStop(0.7, hsl(h, 20, 85, 0.12));
-      glow.addColorStop(1, hsl(h, 10, 95, 0));
-      bx.fillStyle = glow;
-      bx.fillRect(0, 0, W, H);
-      // helix
-      for (let s = 0; s < 2; s++) {
-        const off = s * Math.PI;
-        bx.beginPath();
-        for (let i = 0; i <= 260; i++) {
-          const t = i / 260,
-            y = (t - 0.5) * H * 1.2 + cy + nj(),
-            a =
-              hTurns > 0.01
-                ? t * hTurns * Math.PI * 2 * hDir + hP * 0.42 + off
-                : off,
-            x = cx + Math.sin(a) * hAmp + nj();
-          i === 0 ? bx.moveTo(x, y) : bx.lineTo(x, y);
-        }
-        bx.strokeStyle = hsl(h + s * 15, 18, 72, s === 0 ? bA : bA * 0.7);
-        bx.lineWidth = dpr * (1.3 + s * 0.2);
-        bx.stroke();
+        W = Math.round(bgC.offsetWidth * dpr),
+        H = Math.round(bgC.offsetHeight * dpr);
+      if (bgC.width !== W || bgC.height !== H) {
+        bgC.width = W;
+        bgC.height = H;
       }
-      const rc = Math.max(8, Math.round(12 + Math.abs(rateN) * 5));
-      for (let i = 0; i < rc; i++) {
-        const t = (i + 0.5) / rc,
-          y = (t - 0.5) * H * 1.2 + cy,
-          a1 =
-            hTurns > 0.01 ? t * hTurns * Math.PI * 2 * hDir + hP * 0.42 : 0,
-          a2 = a1 + Math.PI,
-          avg = (Math.cos(a1) + Math.cos(a2)) / 2;
-        if (avg > -0.55) {
-          bx.beginPath();
-          bx.moveTo(cx + Math.sin(a1) * hAmp + nj(), y + nj());
-          bx.lineTo(cx + Math.sin(a2) * hAmp + nj(), y + nj());
-          bx.strokeStyle = hsl(h + 10, 12, 76, 0.06 + (avg + 1) * 0.07);
-          bx.lineWidth = dpr * 0.7;
-          bx.stroke();
-        }
-      }
-      // rings — diagonal, persp-linked tilt
-      const phase = hP * 0.15;
-      bx.save();
-      bx.translate(cx, cy);
-      bx.rotate(0.52);
-      for (let ring = 0; ring < 3; ring++) {
-        const sc = 0.92 + ring * 0.1,
-          ti = ringTiltBase * (1 - ring * 0.08) * (ringNeg ? -1 : 1);
-        const alpha = ringNeg
-          ? 0.28 + ring * 0.04
-          : 0.18 + Math.abs(rN) * 0.06 - ring * 0.02;
-        const rH = ringNeg ? h + 180 : h + ring * 8;
-        bx.beginPath();
-        if (ringNeg) bx.setLineDash([dpr * 6, dpr * 4]);
-        else bx.setLineDash([]);
-        for (let i = 0; i <= 120; i++) {
-          const a = (i / 120) * Math.PI * 2 + phase + ring * 0.2,
-            rx = Math.cos(a) * ringR * sc + nj(),
-            ry = Math.sin(a) * ringR * sc * ti + nj();
-          i === 0 ? bx.moveTo(rx, ry) : bx.lineTo(rx, ry);
-        }
-        bx.closePath();
-        bx.strokeStyle = hsl(rH, 15, 74, alpha);
-        bx.lineWidth = dpr * (ring === 0 ? 1.8 : ring === 1 ? 1.2 : 0.6);
-        bx.stroke();
-      }
-      bx.setLineDash([]);
-      bx.restore();
+      drawIbukiBg(bx, W, H, dpr, P, hP);
     }
     // ══════════════════ TRACKBALL ══════════════════
     const tbC = document.getElementById("tb-canvas"),
@@ -1984,9 +1967,44 @@
         { passive: false },
       );
     });
+    // 紙の裏にもこの場面を置くので、要素を消さず向き・色・呼吸位相ごと渡す。
+    const root = document.documentElement;
+    let outro = null;
+    const turnCursor = { x: turnLook?.cursor?.x || 0, y: turnLook?.cursor?.y || 0 };
+    function trackTurnCursor(e) {
+      turnCursor.x = Math.max(-1, Math.min(1, e.clientX / innerWidth * 2 - 1));
+      turnCursor.y = Math.max(-1, Math.min(1, e.clientY / innerHeight * 2 - 1));
+    }
+    addEventListener("pointermove", trackTurnCursor, { passive: true });
+    addEventListener("pointerdown", trackTurnCursor, { passive: true, capture: true });
+    function turnTo(href) {
+      if (outro) return;
+      resetIdle();
+      const inverted = root.classList.contains("orb-inv");
+      outro = { href };
+      cancelAnimationFrame(lfoRaf);
+      try {
+        const previous = JSON.parse(sessionStorage.getItem("ivky-paper") || "null");
+        // 下へ抜けた紙は次に上から来る。同じ回転方向の一周を続ける。
+        const dir = previous?.dir === -1 ? 1 : -1;
+        sessionStorage.setItem("ivky-turn", JSON.stringify({ from: "ibuki", at: Date.now(), dir }));
+        sessionStorage.setItem("ivky-look", JSON.stringify({
+          P: { radiusBase: P.radiusBase, perspective: P.perspective, lfoRate: P.lfoRate, lfoAmp: P.lfoAmp, hue: P.hue, noise: P.noise },
+          Q: Q.slice(), radius: P.radius, lfoT, inverted, cursor: { ...turnCursor },
+        }));
+      } catch (e) {}
+      location.href = href;
+    }
+    addEventListener("pageshow", (e) => {
+      if (!e.persisted || !outro) return;
+      outro = null;
+      introT = 1;
+      if (!sceneEmbed) lfoTick();
+    });
     // ══════════════════ LFO LOOP ══════════════════
-    let lfoT = 0;
-    let introT = 0;
+    let lfoRaf = 0;
+    let lfoT = (turnIn || sceneEmbed) && Number.isFinite(turnLook?.lfoT) ? turnLook.lfoT : 0;
+    let introT = turnIn || sceneEmbed ? 1 : 0;
     let lastInteract = performance.now();
     function resetIdle() { lastInteract = performance.now(); }
     function lfoTick() {
@@ -2061,21 +2079,24 @@
             Math.PI,
           ) + "°";
       }
-      const absR = Math.abs(rate),
-        absA = Math.abs(amp);
-      P.hue = (P.hue + absR * 2.5 + absA * 1) % 360;
-      P.noise = Math.min(
-        0.55,
-        absA * 0.15 +
-        absR * 0.03 +
-        Math.abs(Math.sin(lfoT * 0.7)) * absA * 0.1,
-      );
+      advanceIbukiColor(P, lfoT);
       if (!lfoLon && !lfoLat) tick();
       padL.draw();
       padR.draw();
-      requestAnimationFrame(lfoTick);
+      lfoRaf = requestAnimationFrame(lfoTick);
     }
-    lfoTick();
+    if (sceneEmbed) {
+      addEventListener("message", (e) => {
+        if (e.source !== parent || e.origin !== location.origin || e.data?.type !== "ivky:scene-color") return;
+        if (!Number.isFinite(e.data.hue) || !Number.isFinite(e.data.noise)) return;
+        P.hue = e.data.hue;
+        P.noise = e.data.noise;
+        drawBg();
+        drawConnections(qM(Q), P.radius);
+      });
+    }
+    if (sceneEmbed || turnIn) { tick(); padL.draw(); padR.draw(); }
+    else lfoTick();
     // ══════════════════ GLOBAL EVENTS ══════════════════
     window.addEventListener("mousemove", (e) => {
       tM(e);
@@ -2150,7 +2171,48 @@
     });
   </script>
   <script src="./versions.js"></script>
-  <script src="./menu.js"></script>
+  <script src="./menu.js?v=trail-memory"></script>
+  <script>
+    if (sceneEmbed || turnIn) {
+      const images = [...document.images];
+      const backgrounds = new Set([...document.querySelectorAll('#app [style*="background-image"]')]
+        .flatMap((el) => [...el.style.backgroundImage.matchAll(/url\(["']?([^"')]+)["']?\)/g)].map((m) => m[1])));
+      for (const src of backgrounds) {
+        const img = new Image();
+        img.src = src;
+        images.push(img);
+      }
+      let timer;
+      const prepared = Promise.allSettled([document.fonts.ready, ...images.map((img) => img.decode())]);
+      Promise.race([prepared, new Promise((resolve) => { timer = setTimeout(resolve, 1500); })]).then(() => {
+        clearTimeout(timer);
+        // 紙の下で見えていた姿を、値を進めずに最初の一枚として描く。
+        tick();
+        padL.draw();
+        padR.draw();
+        if (!sceneEmbed) {
+          requestAnimationFrame(() => {
+            const transition = paperReturnTransition;
+            const ready = transition ? transition.ready.catch(() => {}) : Promise.resolve();
+            ready.then(() => {
+              transition?.skipTransition();
+              requestAnimationFrame(lfoTick);
+            });
+          });
+          return;
+        }
+        let sent = false;
+        const ready = () => {
+          if (sent) return;
+          sent = true;
+          parent.postMessage({ type: "ivky:scene-ready" }, location.origin);
+        };
+        requestAnimationFrame(() => requestAnimationFrame(ready));
+        setTimeout(ready, 100);
+      });
+    }
+  </script>
+  <i id="drawn" hidden></i>
 </body>
 
 </html>
